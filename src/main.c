@@ -16,6 +16,8 @@ void setup();
 void update();
 void clear_color_buffer(uint32_t color);
 void render_color_buffer();
+void draw_grid(uint32_t color, int inv_w, int inv_h);
+void draw_fill_rect(int x, int y, int w, int h, uint32_t color);
 void render();
 void destroy_window();
 
@@ -61,7 +63,7 @@ bool init_window() {
         fprintf(stderr, "Creating renderer error\n");
         return false;
     }
-    
+
     SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
 
     return true;
@@ -105,6 +107,22 @@ void clear_color_buffer(uint32_t color) {
     }
 }
 
+void draw_grid(uint32_t color, int inv_w, int inv_h) {
+    for(int i = 0; i < window_height; i += inv_h) {
+        for(int j = 0; j < window_width; j += inv_w) {
+            color_buffer[window_width * i + j] = color;
+        }
+    }
+}
+
+void draw_fill_rect(int x, int y, int w, int h, uint32_t color) {
+    for(int i = 0; i < h; i++) {
+        for(int j = 0; j < w; j++) {
+            color_buffer[window_width * (y + i) + (x + j)] = color;
+        }
+    }
+}
+
 void render_color_buffer() {
     SDL_UpdateTexture(
         color_buffer_texture,
@@ -123,8 +141,10 @@ void render_color_buffer() {
 void render() {
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL_RenderClear(renderer);
-    clear_color_buffer(0x00000000);
+    draw_grid(0xFF00FFFF, 10, 10);
+    draw_fill_rect(100, 100, 200, 400, 0xFFFFFFFF);
     render_color_buffer();
+    clear_color_buffer(0x00000000);
     SDL_RenderPresent(renderer);
 }
 
