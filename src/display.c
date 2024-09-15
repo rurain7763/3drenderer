@@ -1,4 +1,5 @@
 #include"display.h"
+#include<stdio.h>
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -50,6 +51,11 @@ void clear_color_buffer(uint32_t color) {
     }
 }
 
+void draw_pixel(int x, int y, uint32_t color) {
+    if(x < 0 || x >= window_width || y < 0 || y >= window_height) return;
+    color_buffer[window_width * y + x] = color;
+}
+
 void draw_grid(uint32_t color, int inv_w, int inv_h) {
     for(int i = 0; i < window_height; i += inv_h) {
         for(int j = 0; j < window_width; j += inv_w) {
@@ -61,7 +67,7 @@ void draw_grid(uint32_t color, int inv_w, int inv_h) {
 void draw_fill_rect(int x, int y, int w, int h, uint32_t color) {
     for(int i = 0; i < h; i++) {
         for(int j = 0; j < w; j++) {
-            color_buffer[window_width * (y + i) + (x + j)] = color;
+            draw_pixel(x + j, y + i, color);
         }
     }
 }
