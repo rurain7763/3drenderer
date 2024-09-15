@@ -6,7 +6,10 @@ vec3_t cube[N_POINTS];
 vec2_t projected_points[N_POINTS];
 vec3_t cube_roation = { .x = 0, .y = 0, .z = 0};
 
+vec3_t camera_position = { .x = 0, .y = 0, .z = -5};
+
 bool is_running = false;
+int previous_frame_time = 0;
 
 void process_input();
 void setup();
@@ -71,10 +74,15 @@ vec2_t project(vec3_t point) {
 }
 
 void update() {
-    const vec3_t camera_position = { .x = 0, .y = 0, .z = -5};
-    cube_roation.y += 0.001;
-    cube_roation.z += 0.001;
-    cube_roation.x += 0.001;
+    int wait_time = previous_frame_time + FRAME_TARGET_TIME - SDL_GetTicks();
+    if(wait_time > 0) {
+        SDL_Delay(wait_time);
+    }
+    previous_frame_time = SDL_GetTicks();
+
+    cube_roation.y += 0.01;
+    cube_roation.z += 0.01;
+    cube_roation.x += 0.01;
 
     for(int i = 0; i < N_POINTS; i++) {
         vec3_t point = cube[i];
