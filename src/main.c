@@ -38,7 +38,7 @@ void setup() {
     int idx = 0;
     for(float x = -1; x <= 1; x += 0.25) {
         for(float y = -1; y <= 1; y += 0.25) {
-            for(float z = 01; z <= 1; z += 0.25) {
+            for(float z = -1; z <= 1; z += 0.25) {
                 vec3_t p = { .x = x, .y = y, .z = z};
                 cube[idx++] = p;
             }
@@ -61,18 +61,20 @@ void process_input() {
 }
 
 vec2_t project(vec3_t point) {
-    const float fov_factor = 120;
-
+    const float fov_factor = 640;
     vec2_t projected = {
-        .x = point.x * fov_factor + window_width / 2,
-        .y = point.y * fov_factor + window_height / 2,
+        .x = (point.x * fov_factor) / point.z,
+        .y = (point.y * fov_factor) / point.z
     };
     return projected;
 }
 
 void update() {
+    const vec3_t camera_position = { .x = 0, .y = 0, .z = -5};
+
     for(int i = 0; i < N_POINTS; i++) {
         vec3_t point = cube[i];
+        point.z -= camera_position.z;
         vec2_t projected_point = project(point);
         projected_points[i] = projected_point;
     }
@@ -84,8 +86,8 @@ void render() {
     for(int i = 0; i < N_POINTS; i++) {
         vec2_t projected_point = projected_points[i];
         draw_fill_rect(
-            projected_point.x, 
-            projected_point.y, 
+            projected_point.x + (window_width / 2), 
+            projected_point.y + (window_height / 2), 
             4,
             4,
             0xFFFFFF00
