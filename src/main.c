@@ -40,7 +40,7 @@ void setup() {
         window_height
     );
 
-    load_cube_mesh();
+    load_obj_file("./assets/f22.obj");
 }
 
 void process_input() {
@@ -73,8 +73,6 @@ void update() {
     }
     previous_frame_time = SDL_GetTicks();
 
-    mesh.rotation.y += 0.01;
-    mesh.rotation.z += 0.01;
     mesh.rotation.x += 0.01;
 
     triangles_to_render = NULL;

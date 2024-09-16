@@ -4,12 +4,6 @@
 #include "vector.h"
 #include "triangle.h"
 
-#define N_CUBE_VERTICES 8
-#define N_CUBE_FACES (2 * 6)
-
-extern vec3_t cube_vertices[N_CUBE_VERTICES];
-extern face_t cube_faces[N_CUBE_FACES];
-
 typedef struct {
     vec3_t* vertices; // dynamic array of vertices
     face_t* faces;    // dynamic array of faces
@@ -18,6 +12,6 @@ typedef struct {
 
 extern mesh_t mesh;
 
-void load_cube_mesh();
+void load_obj_file(const char* filename);
 
 #endif
