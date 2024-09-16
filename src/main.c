@@ -105,10 +105,21 @@ void render() {
 
     for(int i = 0; i < N_MESH_FACES; i++) {
         triangle_t triangle = triangles_to_render[i];
+        
+        draw_triangle(
+            triangle.points[0].x,
+            triangle.points[0].y,
+            triangle.points[1].x,
+            triangle.points[1].y,
+            triangle.points[2].x,
+            triangle.points[2].y,
+            0xFFFFFFFF
+        );
+
         for(int j = 0; j < 3; j++) {
             draw_fill_rect(
-                triangle.points[j].x, 
-                triangle.points[j].y, 
+                triangle.points[j].x - 2, 
+                triangle.points[j].y - 2, 
                 4,
                 4,
                 0xFFFFFF00

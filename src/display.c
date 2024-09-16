@@ -72,6 +72,30 @@ void draw_fill_rect(int x, int y, int w, int h, uint32_t color) {
     }
 }
 
+void draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
+    // draw line with DDA algorithm
+    int delta_x = x1 - x0;
+    int delta_y = y1 - y0;
+
+    const int longest_len = abs(delta_x) >= abs(delta_y) ? abs(delta_x) : abs(delta_y);
+
+    const float x_inc = delta_x / (float)longest_len;
+    const float y_inc = delta_y / (float)longest_len;
+
+    float cur_x = x0, cur_y = y0;
+    for(int i = 0; i < longest_len; i++) {
+        draw_pixel(round(cur_x), round(cur_y), color);
+        cur_x += x_inc;
+        cur_y += y_inc;
+    }
+}
+
+void draw_triangle(int x0, int y0, int x1, int y1, int x2, int y2, uint32_t color) {
+    draw_line(x0, y0, x1, y1, color);
+    draw_line(x1, y1, x2, y2, color);
+    draw_line(x2, y2, x0, y0, color);
+}
+
 void render_color_buffer() {
     SDL_UpdateTexture(
         color_buffer_texture,
