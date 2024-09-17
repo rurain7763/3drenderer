@@ -5,7 +5,7 @@
 
 triangle_t* triangles_to_render = NULL;
 
-vec3_t camera_position = { .x = 0, .y = 0, .z = -5};
+vec3_t camera_position = { .x = 0, .y = 0, .z = 0};
 
 bool is_running = false;
 int previous_frame_time = 0;
@@ -40,7 +40,7 @@ void setup() {
         window_height
     );
 
-    load_obj_file("./assets/f22.obj");
+    load_obj_file("./assets/cube.obj");
 }
 
 void process_input() {
@@ -74,6 +74,8 @@ void update() {
     previous_frame_time = SDL_GetTicks();
 
     mesh.rotation.x += 0.01;
+    mesh.rotation.y += 0.01;
+    mesh.rotation.z += 0.01;
 
     triangles_to_render = NULL;
 
@@ -86,15 +88,29 @@ void update() {
         vertices[1] = mesh.vertices[mesh_face.b - 1];
         vertices[2] = mesh.vertices[mesh_face.c - 1];
 
-        triangle_t triangle;
+        vec3_t transformed_vertices[3];
         for(int j = 0; j < 3; j++) {
             vec3_t transformed_vertex = vec3_roate_x(vertices[j], mesh.rotation.x);
             transformed_vertex = vec3_roate_y(transformed_vertex, mesh.rotation.y);
             transformed_vertex = vec3_roate_z(transformed_vertex, mesh.rotation.z);
             
-            transformed_vertex.z -= camera_position.z;
+            transformed_vertex.z += 5.f;
 
-            vec2_t projected_point = project(transformed_vertex);
+            transformed_vertices[j] = transformed_vertex;
+        }
+
+        // back face culling
+        vec3_t ab = vec3_sub(transformed_vertices[1], transformed_vertices[0]);
+        vec3_t ac = vec3_sub(transformed_vertices[2], transformed_vertices[0]);
+        vec3_t normal = vec3_cross(ab, ac);
+        vec3_t to_camera = vec3_sub(camera_position, transformed_vertices[0]);
+        if(vec3_dot(normal, to_camera) < 0) {
+            continue;
+        }
+
+        triangle_t triangle;
+        for(int j = 0; j < 3; j++) {
+            vec2_t projected_point = project(transformed_vertices[j]);
             projected_point.x += window_width / 2;
             projected_point.y += window_height / 2;
 
