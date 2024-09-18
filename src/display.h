@@ -8,11 +8,19 @@
 #define FPS 60
 #define FRAME_TARGET_TIME (1000 / FPS) //millisec
 
+enum RENDER_MOD {
+    RENDER_MOD_WIREFRAME,
+    RENDER_MOD_VERTEX,
+    RENDER_MOD_FACE,
+    RENDER_MOD_BACKFACE
+};
+
 extern SDL_Window* window;
 extern SDL_Renderer* renderer;
 extern int window_width, window_height;
 extern uint32_t* color_buffer;
 extern SDL_Texture* color_buffer_texture;
+extern uint32_t render_mod_mask;
 
 bool init_window();
 void clear_color_buffer(uint32_t color);

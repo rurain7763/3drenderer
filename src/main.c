@@ -40,6 +40,9 @@ void setup() {
         window_height
     );
 
+    render_mod_mask |= 1 << RENDER_MOD_FACE;
+    render_mod_mask |= 1 << RENDER_MOD_BACKFACE;
+
     load_obj_file("./assets/cube.obj");
 }
 
@@ -51,8 +54,17 @@ void process_input() {
         is_running = false;
         break;
     case SDL_KEYDOWN:
-        if(evn.key.keysym.sym == SDLK_ESCAPE) 
+        if(evn.key.keysym.sym == SDLK_ESCAPE) {
             is_running = false;
+        } else if(evn.key.keysym.sym == SDLK_1) {
+            render_mod_mask ^= 1 << RENDER_MOD_WIREFRAME;
+        } else if(evn.key.keysym.sym == SDLK_2) {
+            render_mod_mask ^= 1 << RENDER_MOD_VERTEX;
+        } else if(evn.key.keysym.sym == SDLK_3) {
+            render_mod_mask ^= 1 << RENDER_MOD_FACE;
+        } else if(evn.key.keysym.sym == SDLK_4) {
+            render_mod_mask ^= 1 << RENDER_MOD_BACKFACE;
+        }
         break;
     }
 }
@@ -100,15 +112,17 @@ void update() {
         }
 
         // back face culling
-        vec3_t ab = vec3_sub(transformed_vertices[1], transformed_vertices[0]);
-        vec3_t ac = vec3_sub(transformed_vertices[2], transformed_vertices[0]);
-        vec3_normalize(&ab);
-        vec3_normalize(&ac);
-        vec3_t normal = vec3_cross(ab, ac);
-        vec3_normalize(&normal);
-        vec3_t to_camera = vec3_sub(camera_position, transformed_vertices[0]);
-        if(vec3_dot(normal, to_camera) < 0) {
-            continue;
+        if(render_mod_mask & (1 << RENDER_MOD_BACKFACE)) {
+            vec3_t ab = vec3_sub(transformed_vertices[1], transformed_vertices[0]);
+            vec3_t ac = vec3_sub(transformed_vertices[2], transformed_vertices[0]);
+            vec3_normalize(&ab);
+            vec3_normalize(&ac);
+            vec3_t normal = vec3_cross(ab, ac);
+            vec3_normalize(&normal);
+            vec3_t to_camera = vec3_sub(camera_position, transformed_vertices[0]);
+            if(vec3_dot(normal, to_camera) < 0) {
+                continue;
+            }
         }
 
         triangle_t triangle;
@@ -131,34 +145,40 @@ void render() {
     for(int i = 0; i < len_triangles; i++) {
         triangle_t triangle = triangles_to_render[i];
 
-        draw_filled_triangle(
-            triangle.points[0].x,
-            triangle.points[0].y,
-            triangle.points[1].x,
-            triangle.points[1].y,
-            triangle.points[2].x,
-            triangle.points[2].y,
-            0xFFFFFFFF
-        );
-        
-        draw_triangle(
-            triangle.points[0].x,
-            triangle.points[0].y,
-            triangle.points[1].x,
-            triangle.points[1].y,
-            triangle.points[2].x,
-            triangle.points[2].y,
-            0xFF000000
-        );
-        
-        for(int j = 0; j < 3; j++) {
-            draw_fill_rect(
-                triangle.points[j].x - 2, 
-                triangle.points[j].y - 2, 
-                4,
-                4,
-                0xFFFFFF00
+        if(render_mod_mask & (1 << RENDER_MOD_FACE)) {
+            draw_filled_triangle(
+                triangle.points[0].x,
+                triangle.points[0].y,
+                triangle.points[1].x,
+                triangle.points[1].y,
+                triangle.points[2].x,
+                triangle.points[2].y,
+                0xFF808080
             );
+        }
+        
+        if(render_mod_mask & (1 << RENDER_MOD_WIREFRAME)) {
+            draw_triangle(
+                triangle.points[0].x,
+                triangle.points[0].y,
+                triangle.points[1].x,
+                triangle.points[1].y,
+                triangle.points[2].x,
+                triangle.points[2].y,
+                0xFF00FF00
+            );
+        }
+        
+        if(render_mod_mask & (1 << RENDER_MOD_VERTEX)) {
+            for(int j = 0; j < 3; j++) {
+                draw_fill_rect(
+                    triangle.points[j].x - 2, 
+                    triangle.points[j].y - 2, 
+                    4,
+                    4,
+                    0xFFFFFF00
+                );
+            }
         }
     }
     array_free(triangles_to_render);

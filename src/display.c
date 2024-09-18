@@ -6,6 +6,7 @@ SDL_Renderer* renderer = NULL;
 int window_width = 800, window_height = 600;
 uint32_t* color_buffer = NULL;
 SDL_Texture* color_buffer_texture = NULL;
+uint32_t render_mod_mask = 0;
 
 bool init_window() {
     if(SDL_Init(SDL_INIT_EVERYTHING)) {
