@@ -74,8 +74,8 @@ void update() {
     previous_frame_time = SDL_GetTicks();
 
     mesh.rotation.x += 0.01;
-    mesh.rotation.y += 0.01;
-    mesh.rotation.z += 0.01;
+    //mesh.rotation.y += 0.01;
+    //mesh.rotation.z += 0.01;
 
     triangles_to_render = NULL;
 
@@ -102,7 +102,10 @@ void update() {
         // back face culling
         vec3_t ab = vec3_sub(transformed_vertices[1], transformed_vertices[0]);
         vec3_t ac = vec3_sub(transformed_vertices[2], transformed_vertices[0]);
+        vec3_normalize(&ab);
+        vec3_normalize(&ac);
         vec3_t normal = vec3_cross(ab, ac);
+        vec3_normalize(&normal);
         vec3_t to_camera = vec3_sub(camera_position, transformed_vertices[0]);
         if(vec3_dot(normal, to_camera) < 0) {
             continue;
@@ -128,7 +131,7 @@ void render() {
     for(int i = 0; i < len_triangles; i++) {
         triangle_t triangle = triangles_to_render[i];
 
-        draw_triangle(
+        draw_filled_triangle(
             triangle.points[0].x,
             triangle.points[0].y,
             triangle.points[1].x,
@@ -137,7 +140,17 @@ void render() {
             triangle.points[2].y,
             0xFFFFFFFF
         );
-
+        
+        draw_triangle(
+            triangle.points[0].x,
+            triangle.points[0].y,
+            triangle.points[1].x,
+            triangle.points[1].y,
+            triangle.points[2].x,
+            triangle.points[2].y,
+            0xFF000000
+        );
+        
         for(int j = 0; j < 3; j++) {
             draw_fill_rect(
                 triangle.points[j].x - 2, 

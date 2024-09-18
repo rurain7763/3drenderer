@@ -83,7 +83,7 @@ void draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
     const float y_inc = delta_y / (float)longest_len;
 
     float cur_x = x0, cur_y = y0;
-    for(int i = 0; i < longest_len; i++) {
+    for(int i = 0; i <= longest_len; i++) {
         draw_pixel(round(cur_x), round(cur_y), color);
         cur_x += x_inc;
         cur_y += y_inc;
