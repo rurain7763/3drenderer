@@ -85,9 +85,9 @@ void update() {
     }
     previous_frame_time = SDL_GetTicks();
 
-    mesh.rotation.x += 0.01;
+    //mesh.rotation.x += 0.01;
     mesh.rotation.y += 0.01;
-    mesh.rotation.z += 0.01;
+    //mesh.rotation.z += 0.01;
 
     triangles_to_render = NULL;
 
@@ -132,16 +132,32 @@ void update() {
             projected_points[j].y += window_height / 2;
         }
 
+        // 평균 z 값 구하기
+        float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3;
+
         triangle_t projected_triangle = {
             .points = {
                 projected_points[0],
                 projected_points[1],
                 projected_points[2]
             },
-            .color = mesh_face.color
+            .color = mesh_face.color,
+            .avg_depth = avg_depth
         };
 
         array_push(triangles_to_render, projected_triangle);
+    }
+
+    // 평균 z 값이 큰 순서대로 정렬
+    int len_triangle = array_length(triangles_to_render);
+    for(int i = len_triangle - 1; i > 0; i--) {
+        for(int j = 0; j < i; j++) {
+            if(triangles_to_render[j].avg_depth < triangles_to_render[j + 1].avg_depth) {
+                triangle_t tmp = triangles_to_render[j];
+                triangles_to_render[j] = triangles_to_render[j + 1];
+                triangles_to_render[j + 1] = tmp;
+            }
+        }
     }
 }
 
