@@ -86,8 +86,8 @@ void update() {
     previous_frame_time = SDL_GetTicks();
 
     mesh.rotation.x += 0.01;
-    //mesh.rotation.y += 0.01;
-    //mesh.rotation.z += 0.01;
+    mesh.rotation.y += 0.01;
+    mesh.rotation.z += 0.01;
 
     triangles_to_render = NULL;
 
@@ -125,16 +125,23 @@ void update() {
             }
         }
 
-        triangle_t triangle;
+        vec2_t projected_points[3];
         for(int j = 0; j < 3; j++) {
-            vec2_t projected_point = project(transformed_vertices[j]);
-            projected_point.x += window_width / 2;
-            projected_point.y += window_height / 2;
-
-            triangle.points[j] = projected_point;
+            projected_points[j] = project(transformed_vertices[j]);
+            projected_points[j].x += window_width / 2;
+            projected_points[j].y += window_height / 2;
         }
 
-        array_push(triangles_to_render, triangle);
+        triangle_t projected_triangle = {
+            .points = {
+                projected_points[0],
+                projected_points[1],
+                projected_points[2]
+            },
+            .color = mesh_face.color
+        };
+
+        array_push(triangles_to_render, projected_triangle);
     }
 }
 
@@ -153,7 +160,7 @@ void render() {
                 triangle.points[1].y,
                 triangle.points[2].x,
                 triangle.points[2].y,
-                0xFF808080
+                triangle.color
             );
         }
         
@@ -172,10 +179,10 @@ void render() {
         if(render_mod_mask & (1 << RENDER_MOD_VERTEX)) {
             for(int j = 0; j < 3; j++) {
                 draw_fill_rect(
-                    triangle.points[j].x - 2, 
-                    triangle.points[j].y - 2, 
-                    4,
-                    4,
+                    triangle.points[j].x - 3, 
+                    triangle.points[j].y - 3, 
+                    6,
+                    6,
                     0xFFFFFF00
                 );
             }
