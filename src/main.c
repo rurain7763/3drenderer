@@ -86,12 +86,12 @@ void update() {
     }
     previous_frame_time = SDL_GetTicks();
 
-    //mesh.rotation.x += 0.01;
+    mesh.rotation.x += 0.01;
     mesh.rotation.y += 0.01;
-    //mesh.rotation.z += 0.01;
-    //mesh.scale.x += 0.001;
-    //mesh.scale.y += 0.003;
-    //mesh.translation.x += 0.01;
+    mesh.rotation.z += 0.01;
+    mesh.scale.x += 0.001;
+    mesh.scale.y += 0.002;
+    mesh.translation.x += 0.01;
     mesh.translation.z = 5.0;
 
     triangles_to_render = NULL;
@@ -115,13 +115,14 @@ void update() {
         for(int j = 0; j < 3; j++) {
             vec4_t transformed_vertex = vec4_from_vec3(vertices[j]);
 
-            transformed_vertex = mat4_mul_vec4(scale_mat, transformed_vertex);
-            transformed_vertex = mat4_mul_vec4(rotx_mat, transformed_vertex);
-            transformed_vertex = mat4_mul_vec4(roty_mat, transformed_vertex);
-            transformed_vertex = mat4_mul_vec4(rotz_mat, transformed_vertex);
-            transformed_vertex = mat4_mul_vec4(trans_mat, transformed_vertex);
+            mat4_t world_mat = mat4_identity();
+            world_mat = mat4_mul_mat4(world_mat, trans_mat);
+            world_mat = mat4_mul_mat4(world_mat, rotz_mat);
+            world_mat = mat4_mul_mat4(world_mat, roty_mat);
+            world_mat = mat4_mul_mat4(world_mat, rotx_mat);
+            world_mat = mat4_mul_mat4(world_mat, scale_mat);
 
-            transformed_vertices[j] = transformed_vertex;
+            transformed_vertices[j] = mat4_mul_vec4(world_mat, transformed_vertex);
         }
 
         // back face culling
