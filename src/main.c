@@ -90,11 +90,14 @@ void update() {
     mesh.rotation.y += 0.01;
     //mesh.rotation.z += 0.01;
     mesh.scale.x += 0.001;
-    mesh.scale.y += 0.003;
+    //mesh.scale.y += 0.003;
+    mesh.translation.x += 0.01;
+    mesh.translation.z = 5.0;
 
     triangles_to_render = NULL;
 
     mat4_t scale_mat = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
+    mat4_t trans_mat = mat4_make_translation(mesh.translation.x, mesh.translation.y, mesh.translation.z);
 
     int len_faces = array_length(mesh.faces);
     for(int i = 0; i < len_faces; i++) {
@@ -109,10 +112,8 @@ void update() {
         for(int j = 0; j < 3; j++) {
             vec4_t transformed_vertex = vec4_from_vec3(vertices[j]);
 
-            //TODO:
             transformed_vertex = mat4_mul_vec4(scale_mat, transformed_vertex);
-
-            transformed_vertex.z += 5.f;
+            transformed_vertex = mat4_mul_vec4(trans_mat, transformed_vertex);
 
             transformed_vertices[j] = transformed_vertex;
         }
