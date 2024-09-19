@@ -2,6 +2,7 @@
 #include "vector.h"
 #include "mesh.h"
 #include "array.h"
+#include "matrix.h"
 
 triangle_t* triangles_to_render = NULL;
 
@@ -88,8 +89,12 @@ void update() {
     //mesh.rotation.x += 0.01;
     mesh.rotation.y += 0.01;
     //mesh.rotation.z += 0.01;
+    mesh.scale.x += 0.001;
+    mesh.scale.y += 0.003;
 
     triangles_to_render = NULL;
+
+    mat4_t scale_mat = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
 
     int len_faces = array_length(mesh.faces);
     for(int i = 0; i < len_faces; i++) {
@@ -100,12 +105,13 @@ void update() {
         vertices[1] = mesh.vertices[mesh_face.b - 1];
         vertices[2] = mesh.vertices[mesh_face.c - 1];
 
-        vec3_t transformed_vertices[3];
+        vec4_t transformed_vertices[3];
         for(int j = 0; j < 3; j++) {
-            vec3_t transformed_vertex = vec3_roate_x(vertices[j], mesh.rotation.x);
-            transformed_vertex = vec3_roate_y(transformed_vertex, mesh.rotation.y);
-            transformed_vertex = vec3_roate_z(transformed_vertex, mesh.rotation.z);
-            
+            vec4_t transformed_vertex = vec4_from_vec3(vertices[j]);
+
+            //TODO:
+            transformed_vertex = mat4_mul_vec4(scale_mat, transformed_vertex);
+
             transformed_vertex.z += 5.f;
 
             transformed_vertices[j] = transformed_vertex;
@@ -113,13 +119,17 @@ void update() {
 
         // back face culling
         if(render_mod_mask & (1 << RENDER_MOD_BACKFACE)) {
-            vec3_t ab = vec3_sub(transformed_vertices[1], transformed_vertices[0]);
-            vec3_t ac = vec3_sub(transformed_vertices[2], transformed_vertices[0]);
+            vec3_t a = vec3_from_vec4(transformed_vertices[0]);
+            vec3_t b = vec3_from_vec4(transformed_vertices[1]);
+            vec3_t c = vec3_from_vec4(transformed_vertices[2]);
+
+            vec3_t ab = vec3_sub(b, a);
+            vec3_t ac = vec3_sub(c, a);
             vec3_normalize(&ab);
             vec3_normalize(&ac);
             vec3_t normal = vec3_cross(ab, ac);
             vec3_normalize(&normal);
-            vec3_t to_camera = vec3_sub(camera_position, transformed_vertices[0]);
+            vec3_t to_camera = vec3_sub(camera_position, a);
             if(vec3_dot(normal, to_camera) < 0) {
                 continue;
             }
@@ -127,7 +137,8 @@ void update() {
 
         vec2_t projected_points[3];
         for(int j = 0; j < 3; j++) {
-            projected_points[j] = project(transformed_vertices[j]);
+            vec3_t vertex = vec3_from_vec4(transformed_vertices[j]);
+            projected_points[j] = project(vertex);
             projected_points[j].x += window_width / 2;
             projected_points[j].y += window_height / 2;
         }
@@ -148,7 +159,7 @@ void update() {
         array_push(triangles_to_render, projected_triangle);
     }
 
-    // 평균 z 값이 큰 순서대로 정렬
+    // 평균 z 값이 작은 순서대로 정렬
     int len_triangle = array_length(triangles_to_render);
     for(int i = len_triangle - 1; i > 0; i--) {
         for(int j = 0; j < i; j++) {

@@ -8,7 +8,9 @@
 mesh_t mesh = {
     .vertices = 0,
     .faces = 0,
-    .rotation = {0, 0, 0}
+    .scale = {1, 1, 1},
+    .rotation = {0, 0, 0},
+    .translation = {0, 0, 0}
 };
 
 void load_obj_file(const char* filename) {

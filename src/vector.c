@@ -135,3 +135,23 @@ vec3_t vec3_roate_z(vec3_t v, float rot) {
     };
     return rotated;
 }
+
+vec3_t vec3_from_vec4(vec4_t v) {
+    vec3_t ret = {
+        .x = v.x,
+        .y = v.y,
+        .z = v.z
+    };
+    return ret;
+}
+
+// vec4 methods
+vec4_t vec4_from_vec3(vec3_t v) {
+    vec4_t ret = {
+        .x = v.x,
+        .y = v.y,
+        .z = v.z,
+        .w = 1
+    };
+    return ret;
+}
