@@ -3,6 +3,7 @@
 #include "mesh.h"
 #include "array.h"
 #include "matrix.h"
+#include "light.h"
 
 triangle_t* triangles_to_render = NULL;
 mat4_t perspective_mat;
@@ -51,7 +52,7 @@ void setup() {
     const float zfar = 100.0;
     perspective_mat = mat4_make_perspective(fov, aspect, znear, zfar);
 
-    load_obj_file("./assets/cube.obj");
+    load_obj_file("./assets/f22.obj");
 }
 
 void process_input() {
@@ -123,18 +124,20 @@ void update() {
             transformed_vertices[j] = mat4_mul_vec4(world_mat, transformed_vertex);
         }
 
+        vec3_t a = vec3_from_vec4(transformed_vertices[0]);
+        vec3_t b = vec3_from_vec4(transformed_vertices[1]);
+        vec3_t c = vec3_from_vec4(transformed_vertices[2]);
+
+        vec3_t ab = vec3_sub(b, a);
+        vec3_t ac = vec3_sub(c, a);
+        vec3_normalize(&ab);
+        vec3_normalize(&ac);
+
+        vec3_t normal = vec3_cross(ab, ac);
+        vec3_normalize(&normal);
+
         // back face culling
         if(render_mod_mask & (1 << RENDER_MOD_BACKFACE)) {
-            vec3_t a = vec3_from_vec4(transformed_vertices[0]);
-            vec3_t b = vec3_from_vec4(transformed_vertices[1]);
-            vec3_t c = vec3_from_vec4(transformed_vertices[2]);
-
-            vec3_t ab = vec3_sub(b, a);
-            vec3_t ac = vec3_sub(c, a);
-            vec3_normalize(&ab);
-            vec3_normalize(&ac);
-            vec3_t normal = vec3_cross(ab, ac);
-            vec3_normalize(&normal);
             vec3_t to_camera = vec3_sub(camera_position, a);
             if(vec3_dot(normal, to_camera) < 0) {
                 continue;
@@ -152,6 +155,11 @@ void update() {
             projected_points[j].y += window_height/ 2.0;
         }
 
+        // calculate light intensity and apply
+        uint32_t triangle_color = mesh_face.color;
+        float light_factor = -vec3_dot(global_light.direction, normal);
+        triangle_color = apply_light_intensity(triangle_color, light_factor);
+
         // 평균 z 값 구하기
         float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3;
 
@@ -161,7 +169,7 @@ void update() {
                 { projected_points[1].x, projected_points[1].y },
                 { projected_points[2].x, projected_points[2].y }
             },
-            .color = mesh_face.color,
+            .color = triangle_color,
             .avg_depth = avg_depth
         };
 

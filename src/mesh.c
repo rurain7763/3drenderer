@@ -36,11 +36,7 @@ void load_obj_file(const char* filename) {
             sscanf(buff[1], "%d", &face.b);
             sscanf(buff[2], "%d", &face.c);
 
-            // temp code for color
-            int rnd_r = rand() % 256;
-            int rnd_g = rand() % 256;
-            int rnd_b = rand() % 256;
-            face.color = 0xFF000000 | (rnd_r << 16) | (rnd_g << 8) | (rnd_b << 0);
+            face.color = 0xFF808080;
             
             array_push(mesh.faces, face);
         }
