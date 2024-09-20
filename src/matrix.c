@@ -60,6 +60,41 @@ mat4_t mat4_make_translation(float tx, float ty, float tz) {
     return ret;
 }
 
+mat4_t mat4_make_perspective(float fov, float aspect, float znear, float zfar) {
+    mat4_t ret = {{
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0},
+        {0, 0, 0, 0}
+    }};
+
+    float fov_factor = 1 / tan(fov / 2.0);
+    float lambda = zfar / (zfar - znear);
+    ret.m[0][0] = aspect * fov_factor;
+    ret.m[1][1] = fov_factor;
+    ret.m[2][2] = lambda;
+    ret.m[2][3] = -lambda * znear;
+    ret.m[3][2] = 1.0;
+
+    return ret;
+}
+
+vec4_t mat4_mul_projection_vec4(mat4_t mat, vec4_t v) {
+    // projection matrix를 곱하면 perspective matrix의 경우 w에 z값이 저장된다.
+    vec4_t ret = mat4_mul_vec4(mat, v);
+
+    //TODO:
+
+    // perspective divide를 실행한다. (origin z값으로 나눈다)
+    if(ret.w != 0) {
+        ret.x /= ret.w;
+        ret.y /= ret.w;
+        ret.z /= ret.z; 
+    }
+
+    return ret;
+}
+
 vec4_t mat4_mul_vec4(mat4_t m, vec4_t v) {
     vec4_t ret = {
         .x = m.m[0][0] * v.x + m.m[0][1] * v.y + m.m[0][2] * v.z + m.m[0][3] * v.w,

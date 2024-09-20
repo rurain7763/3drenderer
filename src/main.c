@@ -5,6 +5,7 @@
 #include "matrix.h"
 
 triangle_t* triangles_to_render = NULL;
+mat4_t perspective_mat;
 
 vec3_t camera_position = { .x = 0, .y = 0, .z = 0};
 
@@ -44,6 +45,12 @@ void setup() {
     render_mod_mask |= 1 << RENDER_MOD_FACE;
     render_mod_mask |= 1 << RENDER_MOD_BACKFACE;
 
+    const float fov = M_PI / 3.0; // 60 degree
+    const float aspect = window_height / (float)window_width;
+    const float znear = 0.1;
+    const float zfar = 100.0;
+    perspective_mat = mat4_make_perspective(fov, aspect, znear, zfar);
+
     load_obj_file("./assets/cube.obj");
 }
 
@@ -70,15 +77,6 @@ void process_input() {
     }
 }
 
-vec2_t project(vec3_t point) {
-    const float fov_factor = 640;
-    vec2_t projected = {
-        .x = (point.x * fov_factor) / point.z,
-        .y = (point.y * fov_factor) / point.z
-    };
-    return projected;
-}
-
 void update() {
     int wait_time = previous_frame_time + FRAME_TARGET_TIME - SDL_GetTicks();
     if(wait_time > 0) {
@@ -87,11 +85,11 @@ void update() {
     previous_frame_time = SDL_GetTicks();
 
     mesh.rotation.x += 0.01;
-    mesh.rotation.y += 0.01;
-    mesh.rotation.z += 0.01;
-    mesh.scale.x += 0.001;
-    mesh.scale.y += 0.002;
-    mesh.translation.x += 0.01;
+    //mesh.rotation.y += 0.01;
+    //mesh.rotation.z += 0.01;
+    //mesh.scale.x += 0.001;
+    //mesh.scale.y += 0.002;
+    //mesh.translation.x += 0.01;
     mesh.translation.z = 5.0;
 
     triangles_to_render = NULL;
@@ -143,12 +141,15 @@ void update() {
             }
         }
 
-        vec2_t projected_points[3];
+        vec4_t projected_points[3];
         for(int j = 0; j < 3; j++) {
-            vec3_t vertex = vec3_from_vec4(transformed_vertices[j]);
-            projected_points[j] = project(vertex);
-            projected_points[j].x += window_width / 2;
-            projected_points[j].y += window_height / 2;
+            projected_points[j] = mat4_mul_projection_vec4(perspective_mat, transformed_vertices[j]);
+
+            projected_points[j].x *= window_width / 2.0;
+            projected_points[j].y *= window_height / 2.0;
+
+            projected_points[j].x += window_width / 2.0;
+            projected_points[j].y += window_height/ 2.0;
         }
 
         // 평균 z 값 구하기
@@ -156,9 +157,9 @@ void update() {
 
         triangle_t projected_triangle = {
             .points = {
-                projected_points[0],
-                projected_points[1],
-                projected_points[2]
+                { projected_points[0].x, projected_points[0].y },
+                { projected_points[1].x, projected_points[1].y },
+                { projected_points[2].x, projected_points[2].y }
             },
             .color = mesh_face.color,
             .avg_depth = avg_depth
