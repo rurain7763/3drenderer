@@ -150,6 +150,7 @@ void update() {
 
             projected_points[j].x *= window_width / 2.0;
             projected_points[j].y *= window_height / 2.0;
+            projected_points[j].y *= -1.0;
 
             projected_points[j].x += window_width / 2.0;
             projected_points[j].y += window_height/ 2.0;
