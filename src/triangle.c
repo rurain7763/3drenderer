@@ -83,14 +83,23 @@ vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p) {
 
 void draw_texel(
     int x, int y,
-    vec2_t a, vec2_t b, vec2_t c, 
-    float u0, float v0, float u1, float v1, float u2, float v2
+    vec4_t a, vec4_t b, vec4_t c, 
+    tex2_t a_uv, tex2_t b_uv, tex2_t c_uv
 ) {
     vec2_t p = {x, y};
-    vec3_t weights = barycentric_weights(a, b, c, p);
+    vec2_t _a = vec2_from_vec4(a);
+    vec2_t _b = vec2_from_vec4(b);
+    vec2_t _c = vec2_from_vec4(c);
 
-    float u = u0 * weights.x + u1 * weights.y + u2 * weights.z;
-    float v = v0 * weights.x + v1 * weights.y + v2 * weights.z;
+    vec3_t weights = barycentric_weights(_a, _b, _c, p);
+
+    float u = (a_uv.u / a.w) * weights.x + (b_uv.u / b.w) * weights.y + (c_uv.u / c.w) * weights.z;
+    float v = (a_uv.v / a.w) * weights.x + (b_uv.v / b.w) * weights.y + (c_uv.v / c.w) * weights.z;
+
+    float inv_w = (1 / a.w) * weights.x + (1 / b.w) * weights.y + (1 / c.w) * weights.z;
+
+    u /= inv_w;
+    v /= inv_w;
 
     int tex_x = texture_width * u;
     if(tex_x < 0) tex_x = 0;
@@ -104,15 +113,16 @@ void draw_texel(
 }
 
 void draw_textured_triangle(
-    int x0, int y0, float u0, float v0, 
-    int x1, int y1, float u1, float v1,
-    int x2, int y2, float u2, float v2,
-    uint32_t* texture
+    int x0, int y0, float z0, float w0, float u0, float v0, 
+    int x1, int y1, float z1, float w1, float u1, float v1,
+    int x2, int y2, float z2, float w2, float u2, float v2
 ) {
     // y값이 큰 순서대로 정렬
     if(y0 > y1) {
         int_swap(&x0, &x1);
         int_swap(&y0, &y1);
+        float_swap(&z0, &z1);
+        float_swap(&w0, &w1);
         float_swap(&u0, &u1);
         float_swap(&v0, &v1);
     }
@@ -120,6 +130,8 @@ void draw_textured_triangle(
     if(y1 > y2) {
         int_swap(&x1, &x2);
         int_swap(&y1, &y2);
+        float_swap(&z1, &z2);
+        float_swap(&w1, &w2);
         float_swap(&u1, &u2);
         float_swap(&v1, &v2);
     }
@@ -127,13 +139,19 @@ void draw_textured_triangle(
     if(y0 > y1) {
         int_swap(&x0, &x1);
         int_swap(&y0, &y1);
+        float_swap(&z0, &z1);
+        float_swap(&w0, &w1);
         float_swap(&u0, &u1);
         float_swap(&v0, &v1);
     }
 
-    vec2_t a = { x0, y0 };
-    vec2_t b = { x1, y1 };
-    vec2_t c = { x2, y2 };
+    vec4_t a = { x0, y0, z0, w0 };
+    vec4_t b = { x1, y1, z1, w1 };
+    vec4_t c = { x2, y2, z2, w2 };
+
+    tex2_t a_uv = { u0, v0 };
+    tex2_t b_uv = { u1, v1 };
+    tex2_t c_uv = { u2, v2 };
 
     float inv_slope_1 = y1 != y0 ? (x1 - x0) / (float)(y1 - y0) : 0.f;
     float inv_slope_2 = y2 != y0 ? (x2 - x0) / (float)(y2 - y0) : 0.f;
@@ -148,7 +166,7 @@ void draw_textured_triangle(
             }
 
             for (int x = x_start; x < x_end; x++) {
-                draw_texel(x, y, a, b, c, u0, v0, u1, v1, u2, v2);
+                draw_texel(x, y, a, b, c, a_uv, b_uv, c_uv);
             }
         }
     }
@@ -165,7 +183,7 @@ void draw_textured_triangle(
             }
 
             for (int x = x_start; x < x_end; x++) {
-                draw_texel(x, y, a, b, c, u0, v0, u1, v1, u2, v2);
+                draw_texel(x, y, a, b, c, a_uv, b_uv, c_uv);
             }
         }
     }
