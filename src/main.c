@@ -4,6 +4,8 @@
 #include "array.h"
 #include "matrix.h"
 #include "light.h"
+#include "texture.h"
+#include "triangle.h"
 
 triangle_t* triangles_to_render = NULL;
 mat4_t perspective_mat;
@@ -43,7 +45,7 @@ void setup() {
         window_height
     );
 
-    render_mod_mask |= 1 << RENDER_MOD_FACE;
+    render_mod_mask |= 1 << RENDER_MOD_SOLID;
     render_mod_mask |= 1 << RENDER_MOD_BACKFACE;
 
     const float fov = M_PI / 3.0; // 60 degree
@@ -52,7 +54,12 @@ void setup() {
     const float zfar = 100.0;
     perspective_mat = mat4_make_perspective(fov, aspect, znear, zfar);
 
-    load_obj_file("./assets/f22.obj");
+    mesh_texture = (uint32_t*)REDBRICK_TEXTURE;
+    texture_width = 64;
+    texture_height = 64;
+
+    load_cube_mesh_data();
+    //load_obj_file("./assets/f22.obj");
 }
 
 void process_input() {
@@ -70,9 +77,11 @@ void process_input() {
         } else if(evn.key.keysym.sym == SDLK_2) {
             render_mod_mask ^= 1 << RENDER_MOD_VERTEX;
         } else if(evn.key.keysym.sym == SDLK_3) {
-            render_mod_mask ^= 1 << RENDER_MOD_FACE;
+            render_mod_mask ^= 1 << RENDER_MOD_SOLID;
         } else if(evn.key.keysym.sym == SDLK_4) {
             render_mod_mask ^= 1 << RENDER_MOD_BACKFACE;
+        } else if(evn.key.keysym.sym == SDLK_5) {
+            render_mod_mask ^= 1 << RENDER_MOD_TEXTURED;
         }
         break;
     }
@@ -170,6 +179,11 @@ void update() {
                 { projected_points[1].x, projected_points[1].y },
                 { projected_points[2].x, projected_points[2].y }
             },
+            .texcoords = {
+                { mesh_face.a_uv.u, mesh_face.a_uv.v },
+                { mesh_face.b_uv.u, mesh_face.b_uv.v },
+                { mesh_face.c_uv.u, mesh_face.c_uv.v }
+            },
             .color = triangle_color,
             .avg_depth = avg_depth
         };
@@ -197,7 +211,7 @@ void render() {
     for(int i = 0; i < len_triangles; i++) {
         triangle_t triangle = triangles_to_render[i];
 
-        if(render_mod_mask & (1 << RENDER_MOD_FACE)) {
+        if(render_mod_mask & (1 << RENDER_MOD_SOLID)) {
             draw_filled_triangle(
                 triangle.points[0].x,
                 triangle.points[0].y,
@@ -206,6 +220,15 @@ void render() {
                 triangle.points[2].x,
                 triangle.points[2].y,
                 triangle.color
+            );
+        }
+
+        if(render_mod_mask & (1 << RENDER_MOD_TEXTURED)) {
+            draw_textured_triangle(
+                triangle.points[0].x, triangle.points[0].y, triangle.texcoords[0].u, triangle.texcoords[0].v,
+                triangle.points[1].x, triangle.points[1].y, triangle.texcoords[1].u, triangle.texcoords[1].v,
+                triangle.points[2].x, triangle.points[2].y, triangle.texcoords[2].u, triangle.texcoords[2].v,
+                mesh_texture
             );
         }
         
