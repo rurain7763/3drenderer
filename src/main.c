@@ -94,8 +94,8 @@ void update() {
     }
     previous_frame_time = SDL_GetTicks();
 
-    mesh.rotation.x += 0.01;
-    mesh.rotation.y += 0.01;
+    //mesh.rotation.x += 0.01;
+    //mesh.rotation.y += 0.01;
     //mesh.rotation.z += 0.01;
     //mesh.scale.x += 0.001;
     //mesh.scale.y += 0.002;

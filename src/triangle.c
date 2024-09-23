@@ -105,7 +105,8 @@ void draw_texel(
     if(tex_x < 0) tex_x = 0;
     if(tex_x >= texture_width) tex_x = texture_width - 1;
 
-    int tex_y = texture_height * v;
+    // get flip tex_y
+    int tex_y = (texture_height - 1) - texture_height * v;
     if(tex_y < 0) tex_y = 0;
     if(tex_y >= texture_height) tex_y = texture_height - 1;
 
