@@ -95,7 +95,7 @@ void update() {
     previous_frame_time = SDL_GetTicks();
 
     mesh.rotation.x += 0.01;
-    //mesh.rotation.y += 0.01;
+    mesh.rotation.y += 0.01;
     //mesh.rotation.z += 0.01;
     //mesh.scale.x += 0.001;
     //mesh.scale.y += 0.002;
@@ -211,7 +211,14 @@ void render() {
     for(int i = 0; i < len_triangles; i++) {
         triangle_t triangle = triangles_to_render[i];
 
-        if(render_mod_mask & (1 << RENDER_MOD_SOLID)) {
+        if(render_mod_mask & (1 << RENDER_MOD_TEXTURED)) {
+            draw_textured_triangle(
+                triangle.points[0].x, triangle.points[0].y, triangle.texcoords[0].u, triangle.texcoords[0].v,
+                triangle.points[1].x, triangle.points[1].y, triangle.texcoords[1].u, triangle.texcoords[1].v,
+                triangle.points[2].x, triangle.points[2].y, triangle.texcoords[2].u, triangle.texcoords[2].v,
+                mesh_texture
+            );
+        } else if(render_mod_mask & (1 << RENDER_MOD_SOLID)) {
             draw_filled_triangle(
                 triangle.points[0].x,
                 triangle.points[0].y,
@@ -223,15 +230,6 @@ void render() {
             );
         }
 
-        if(render_mod_mask & (1 << RENDER_MOD_TEXTURED)) {
-            draw_textured_triangle(
-                triangle.points[0].x, triangle.points[0].y, triangle.texcoords[0].u, triangle.texcoords[0].v,
-                triangle.points[1].x, triangle.points[1].y, triangle.texcoords[1].u, triangle.texcoords[1].v,
-                triangle.points[2].x, triangle.points[2].y, triangle.texcoords[2].u, triangle.texcoords[2].v,
-                mesh_texture
-            );
-        }
-        
         if(render_mod_mask & (1 << RENDER_MOD_WIREFRAME)) {
             draw_triangle(
                 triangle.points[0].x,
