@@ -37,6 +37,7 @@ int main() {
 
 void setup() {
     color_buffer = (uint32_t*)malloc(sizeof(uint32_t) * window_width * window_height);
+    z_buffer = (float*)malloc(sizeof(float) * window_width * window_height);
 
     color_buffer_texture = SDL_CreateTexture(
         renderer,
@@ -52,8 +53,8 @@ void setup() {
     const float zfar = 100.0;
     perspective_mat = mat4_make_perspective(fov, aspect, znear, zfar);
 
-    load_obj_file("./assets/sphere.obj");
-    load_png_texture("./assets/pikuma.png");
+    load_obj_file("./assets/drone.obj");
+    load_png_texture("./assets/drone.png");
 
     if(mesh_texture) render_mod_mask |= 1 << RENDER_MOD_TEXTURED;
     else render_mod_mask |= 1 << RENDER_MOD_SOLID;
@@ -170,9 +171,6 @@ void update() {
         float light_factor = -vec3_dot(global_light.direction, normal);
         triangle_color = apply_light_intensity(triangle_color, light_factor);
 
-        // 평균 z 값 구하기
-        float avg_depth = (transformed_vertices[0].z + transformed_vertices[1].z + transformed_vertices[2].z) / 3;
-
         triangle_t projected_triangle = {
             .points = {
                 { projected_points[0].x, projected_points[0].y, projected_points[0].z, projected_points[0].w },
@@ -185,22 +183,9 @@ void update() {
                 { mesh_face.c_uv.u, mesh_face.c_uv.v }
             },
             .color = triangle_color,
-            .avg_depth = avg_depth
         };
 
         array_push(triangles_to_render, projected_triangle);
-    }
-
-    // 평균 z 값이 작은 순서대로 정렬
-    int len_triangle = array_length(triangles_to_render);
-    for(int i = len_triangle - 1; i > 0; i--) {
-        for(int j = 0; j < i; j++) {
-            if(triangles_to_render[j].avg_depth < triangles_to_render[j + 1].avg_depth) {
-                triangle_t tmp = triangles_to_render[j];
-                triangles_to_render[j] = triangles_to_render[j + 1];
-                triangles_to_render[j + 1] = tmp;
-            }
-        }
     }
 }
 
@@ -219,12 +204,9 @@ void render() {
             );
         } else if(render_mod_mask & (1 << RENDER_MOD_SOLID)) {
             draw_filled_triangle(
-                triangle.points[0].x,
-                triangle.points[0].y,
-                triangle.points[1].x,
-                triangle.points[1].y,
-                triangle.points[2].x,
-                triangle.points[2].y,
+                triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w,
+                triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w,
+                triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w,
                 triangle.color
             );
         }
@@ -256,12 +238,14 @@ void render() {
     array_free(triangles_to_render);
 
     render_color_buffer();
+    clear_z_buffer();
     clear_color_buffer(0x00000000);
     SDL_RenderPresent(renderer);
 }
 
 void destroy_resources() {
     free(mesh_texture);
+    free(z_buffer);
     free(color_buffer);
     array_free(mesh.faces);
     array_free(mesh.vertices);

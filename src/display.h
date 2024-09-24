@@ -20,11 +20,13 @@ extern SDL_Window* window;
 extern SDL_Renderer* renderer;
 extern int window_width, window_height;
 extern uint32_t* color_buffer;
+extern float* z_buffer;
 extern SDL_Texture* color_buffer_texture;
 extern uint32_t render_mod_mask;
 
 bool init_window();
 void clear_color_buffer(uint32_t color);
+void clear_z_buffer();
 void draw_pixel(int x, int y, uint32_t color);
 void render_color_buffer();
 void draw_grid(uint32_t color, int inv_w, int inv_h);
