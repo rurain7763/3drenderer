@@ -101,14 +101,8 @@ void draw_texel(
     u /= inv_w;
     v /= inv_w;
 
-    int tex_x = texture_width * u;
-    if(tex_x < 0) tex_x = 0;
-    if(tex_x >= texture_width) tex_x = texture_width - 1;
-
-    // get flip tex_y
-    int tex_y = (texture_height - 1) - texture_height * v;
-    if(tex_y < 0) tex_y = 0;
-    if(tex_y >= texture_height) tex_y = texture_height - 1;
+    int tex_x = abs((int)(texture_width * u)) % texture_width;
+    int tex_y = abs((int)(texture_height * v)) % texture_height;
 
     draw_pixel(x, y, mesh_texture[texture_width * tex_y + tex_x]);
 }
@@ -145,6 +139,11 @@ void draw_textured_triangle(
         float_swap(&u0, &u1);
         float_swap(&v0, &v1);
     }
+
+    // v값 반전
+    v0 = 1.f - v0;
+    v1 = 1.f - v1;
+    v2 = 1.f - v2;
 
     vec4_t a = { x0, y0, z0, w0 };
     vec4_t b = { x1, y1, z1, w1 };

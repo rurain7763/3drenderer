@@ -61,6 +61,7 @@ void load_obj_file(const char* filename) {
     fp = fopen(filename, "r");
     if(!fp) return;
     char line[256];
+    tex2_t* texcoords = NULL;
     while(fgets(line, sizeof(line), fp)) {
         int len_line = strlen(line);
         if(len_line < 2) continue;
@@ -69,21 +70,36 @@ void load_obj_file(const char* filename) {
             vec3_t vertex;
             sscanf(&line[2], "%f %f %f", &vertex.x, &vertex.y, &vertex.z);
             array_push(mesh.vertices, vertex);
+        } else if(line[0] == 'v' && line[1] == 't') {
+            tex2_t texcoord;
+            sscanf(&line[3], "%f %f", &texcoord.u, &texcoord.v);
+            array_push(texcoords, texcoord);
         } else if(line[0] == 'f' && line[1] == ' ') {
             // face information
             char buff[3][64];
             sscanf(&line[2], "%s %s %s", buff[0], buff[1], buff[2]);
 
-            face_t face;
-            sscanf(buff[0], "%d", &face.a);
-            sscanf(buff[1], "%d", &face.b);
-            sscanf(buff[2], "%d", &face.c);
+            int vertex_indices[3];
+            int texture_indices[3];
 
-            face.color = 0xFF808080;
+            sscanf(buff[0], "%d/%d", &vertex_indices[0], &texture_indices[0]);
+            sscanf(buff[1], "%d/%d", &vertex_indices[1], &texture_indices[1]);
+            sscanf(buff[2], "%d/%d", &vertex_indices[2], &texture_indices[2]);
+
+            face_t face = {
+                .a = vertex_indices[0] - 1,
+                .a_uv = texcoords[texture_indices[0] - 1],
+                .b = vertex_indices[1] - 1,
+                .b_uv = texcoords[texture_indices[1] - 1],
+                .c = vertex_indices[2] - 1,
+                .c_uv = texcoords[texture_indices[2] - 1],
+                .color = 0xFF808080
+            };
             
             array_push(mesh.faces, face);
         }
     }
+    array_free(texcoords);
     fclose(fp);
 }
 

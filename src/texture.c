@@ -86,7 +86,12 @@ void load_png_texture(const char* fileName) {
         texture_width = upng_get_width(texture_png);
         texture_height = upng_get_height(texture_png);
 
+        if(mesh_texture) {
+            free(mesh_texture);
+            mesh_texture = 0;
+        }
         mesh_texture = (uint32_t*)malloc(sizeof(uint32_t) * texture_width * texture_height);
+        
         uint32_t* rgba_colors = (uint32_t*)upng_get_buffer(texture_png);
         for(int i = 0; i < texture_height * texture_width; i++) {
             uint32_t a = (rgba_colors[i] & 0xFF000000);

@@ -46,19 +46,19 @@ void setup() {
         window_height
     );
 
-    render_mod_mask |= 1 << RENDER_MOD_SOLID;
-    render_mod_mask |= 1 << RENDER_MOD_BACKFACE;
-
     const float fov = M_PI / 3.0; // 60 degree
     const float aspect = window_height / (float)window_width;
     const float znear = 0.1;
     const float zfar = 100.0;
     perspective_mat = mat4_make_perspective(fov, aspect, znear, zfar);
 
-    load_cube_mesh_data();
-    //load_obj_file("./assets/f22.obj");
+    load_obj_file("./assets/sphere.obj");
+    load_png_texture("./assets/pikuma.png");
 
-    load_png_texture("./assets/cube.png");
+    if(mesh_texture) render_mod_mask |= 1 << RENDER_MOD_TEXTURED;
+    else render_mod_mask |= 1 << RENDER_MOD_SOLID;
+
+    render_mod_mask |= 1 << RENDER_MOD_BACKFACE;
 }
 
 void process_input() {
@@ -114,15 +114,16 @@ void update() {
         face_t mesh_face = mesh.faces[i];
 
         vec3_t vertices[3];
-        vertices[0] = mesh.vertices[mesh_face.a - 1];
-        vertices[1] = mesh.vertices[mesh_face.b - 1];
-        vertices[2] = mesh.vertices[mesh_face.c - 1];
+        vertices[0] = mesh.vertices[mesh_face.a];
+        vertices[1] = mesh.vertices[mesh_face.b];
+        vertices[2] = mesh.vertices[mesh_face.c];
 
         vec4_t transformed_vertices[3];
         for(int j = 0; j < 3; j++) {
             vec4_t transformed_vertex = vec4_from_vec3(vertices[j]);
 
             mat4_t world_mat = mat4_identity();
+
             world_mat = mat4_mul_mat4(world_mat, trans_mat);
             world_mat = mat4_mul_mat4(world_mat, rotz_mat);
             world_mat = mat4_mul_mat4(world_mat, roty_mat);
