@@ -79,6 +79,22 @@ mat4_t mat4_make_perspective(float fov, float aspect, float znear, float zfar) {
     return ret;
 }
 
+mat4_t mat4_look_at(vec3_t eye, vec3_t target, vec3_t up) {
+    vec3_t z = vec3_sub(target, eye);
+    vec3_normalize(&z);
+    vec3_t x = vec3_cross(up, z);
+    vec3_normalize(&x);
+    vec3_t y = vec3_cross(z, x);
+
+    mat4_t ret = {{
+        { x.x, x.y, x.z, -vec3_dot(x, eye) },
+        { y.x, y.y, y.z, -vec3_dot(y, eye) },
+        { z.x, z.y, z.z, -vec3_dot(z, eye) },
+        {   0,   0,   0,                 1 }
+    }};
+    return ret;
+}
+
 vec4_t mat4_mul_projection_vec4(mat4_t mat, vec4_t v) {
     // projection matrix를 곱하면 perspective matrix의 경우 w에 z값이 저장된다.
     vec4_t ret = mat4_mul_vec4(mat, v);

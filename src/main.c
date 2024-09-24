@@ -7,6 +7,7 @@
 #include "texture.h"
 #include "triangle.h"
 #include "upng.h"
+#include "camera.h"
 
 #define MAX_TRIANGLES_PER_MESH 10000
 
@@ -14,8 +15,8 @@ triangle_t triangles_to_render[MAX_TRIANGLES_PER_MESH];
 int num_triangles_to_render = 0;
 
 mat4_t perspective_mat;
-
-vec3_t camera_position = { .x = 0, .y = 0, .z = 0};
+mat4_t view_mat;
+mat4_t world_mat;
 
 bool is_running = false;
 int previous_frame_time = 0;
@@ -57,8 +58,8 @@ void setup() {
     const float zfar = 100.0;
     perspective_mat = mat4_make_perspective(fov, aspect, znear, zfar);
 
-    load_obj_file("./assets/drone.obj");
-    load_png_texture("./assets/drone.png");
+    load_obj_file("./assets/crab.obj");
+    load_png_texture("./assets/crab.png");
 
     if(mesh_texture) render_mod_mask |= 1 << RENDER_MOD_TEXTURED;
     else render_mod_mask |= 1 << RENDER_MOD_SOLID;
@@ -99,14 +100,21 @@ void update() {
     previous_frame_time = SDL_GetTicks();
 
     //mesh.rotation.x += 0.01;
-    mesh.rotation.y += 0.01;
+    //mesh.rotation.y += 0.01;
     //mesh.rotation.z += 0.01;
     //mesh.scale.x += 0.001;
     //mesh.scale.y += 0.002;
     //mesh.translation.x += 0.01;
     mesh.translation.z = 5.0;
 
+    camera.position.x += 0.01;
+    camera.position.y += 0.01;
+
     num_triangles_to_render = 0;
+
+    vec3_t target = {0, 0, 4.0};
+    vec3_t up = {0, 1, 0};
+    view_mat = mat4_look_at(camera.position, target, up);
 
     mat4_t scale_mat = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
     mat4_t rotx_mat = mat4_make_rotation_x(mesh.rotation.x);
@@ -127,7 +135,7 @@ void update() {
         for(int j = 0; j < 3; j++) {
             vec4_t transformed_vertex = vec4_from_vec3(vertices[j]);
 
-            mat4_t world_mat = mat4_identity();
+            world_mat = mat4_identity();
 
             world_mat = mat4_mul_mat4(world_mat, trans_mat);
             world_mat = mat4_mul_mat4(world_mat, rotz_mat);
@@ -135,7 +143,11 @@ void update() {
             world_mat = mat4_mul_mat4(world_mat, rotx_mat);
             world_mat = mat4_mul_mat4(world_mat, scale_mat);
 
-            transformed_vertices[j] = mat4_mul_vec4(world_mat, transformed_vertex);
+            transformed_vertex = mat4_mul_vec4(world_mat, transformed_vertex);
+            transformed_vertex = mat4_mul_vec4(view_mat, transformed_vertex);
+
+            transformed_vertices[j] = transformed_vertex;
+
         }
 
         vec3_t a = vec3_from_vec4(transformed_vertices[0]);
@@ -152,7 +164,8 @@ void update() {
 
         // back face culling
         if(render_mod_mask & (1 << RENDER_MOD_BACKFACE)) {
-            vec3_t to_camera = vec3_sub(camera_position, a);
+            vec3_t origin = {0, 0, 0};
+            vec3_t to_camera = vec3_sub(origin, a);
             if(vec3_dot(normal, to_camera) < 0) {
                 continue;
             }
