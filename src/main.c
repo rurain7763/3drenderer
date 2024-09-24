@@ -6,6 +6,7 @@
 #include "light.h"
 #include "texture.h"
 #include "triangle.h"
+#include "upng.h"
 
 triangle_t* triangles_to_render = NULL;
 mat4_t perspective_mat;
@@ -54,12 +55,10 @@ void setup() {
     const float zfar = 100.0;
     perspective_mat = mat4_make_perspective(fov, aspect, znear, zfar);
 
-    mesh_texture = (uint32_t*)REDBRICK_TEXTURE;
-    texture_width = 64;
-    texture_height = 64;
-
     load_cube_mesh_data();
     //load_obj_file("./assets/f22.obj");
+
+    load_png_texture("./assets/cube.png");
 }
 
 void process_input() {
@@ -95,7 +94,7 @@ void update() {
     previous_frame_time = SDL_GetTicks();
 
     //mesh.rotation.x += 0.01;
-    //mesh.rotation.y += 0.01;
+    mesh.rotation.y += 0.01;
     //mesh.rotation.z += 0.01;
     //mesh.scale.x += 0.001;
     //mesh.scale.y += 0.002;
@@ -261,6 +260,7 @@ void render() {
 }
 
 void destroy_resources() {
+    free(mesh_texture);
     free(color_buffer);
     array_free(mesh.faces);
     array_free(mesh.vertices);
