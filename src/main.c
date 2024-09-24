@@ -8,7 +8,11 @@
 #include "triangle.h"
 #include "upng.h"
 
-triangle_t* triangles_to_render = NULL;
+#define MAX_TRIANGLES_PER_MESH 10000
+
+triangle_t triangles_to_render[MAX_TRIANGLES_PER_MESH];
+int num_triangles_to_render = 0;
+
 mat4_t perspective_mat;
 
 vec3_t camera_position = { .x = 0, .y = 0, .z = 0};
@@ -102,7 +106,7 @@ void update() {
     //mesh.translation.x += 0.01;
     mesh.translation.z = 5.0;
 
-    triangles_to_render = NULL;
+    num_triangles_to_render = 0;
 
     mat4_t scale_mat = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
     mat4_t rotx_mat = mat4_make_rotation_x(mesh.rotation.x);
@@ -185,15 +189,16 @@ void update() {
             .color = triangle_color,
         };
 
-        array_push(triangles_to_render, projected_triangle);
+        if(num_triangles_to_render < MAX_TRIANGLES_PER_MESH) {
+            triangles_to_render[num_triangles_to_render++] = projected_triangle;
+        }
     }
 }
 
 void render() {
     draw_grid(0xFF00FFFF, 10, 10);
 
-    int len_triangles = array_length(triangles_to_render);
-    for(int i = 0; i < len_triangles; i++) {
+    for(int i = 0; i < num_triangles_to_render; i++) {
         triangle_t triangle = triangles_to_render[i];
 
         if(render_mod_mask & (1 << RENDER_MOD_TEXTURED)) {
@@ -235,7 +240,6 @@ void render() {
             }
         }
     }
-    array_free(triangles_to_render);
 
     render_color_buffer();
     clear_z_buffer();
