@@ -61,8 +61,8 @@ void setup() {
     perspective_mat = mat4_make_perspective(fov, aspect, z_near, z_far);
     init_frustum_planes(fov, z_near, z_far);
 
-    load_obj_file("./assets/f22.obj");
-    load_png_texture("./assets/f22.png");
+    load_obj_file("./assets/cube.obj");
+    //load_png_texture("./assets/cube.png");
 
     if(mesh_texture) render_mod_mask |= 1 << RENDER_MOD_TEXTURED;
     else render_mod_mask |= 1 << RENDER_MOD_SOLID;
@@ -138,6 +138,7 @@ void update() {
 
     int len_faces = array_length(mesh.faces);
     for(int i = 0; i < len_faces; i++) {
+        if(i != 4) continue;
         face_t mesh_face = mesh.faces[i];
 
         vec3_t vertices[3];
@@ -183,6 +184,15 @@ void update() {
                 continue;
             }
         }
+
+        // clipping
+        polygon_t polygon = create_polygon_from_triangle(
+            vec3_from_vec4(transformed_vertices[0]),
+            vec3_from_vec4(transformed_vertices[1]),
+            vec3_from_vec4(transformed_vertices[2])
+        );
+
+        clip_polygon(&polygon);
 
         vec4_t projected_points[3];
         for(int j = 0; j < 3; j++) {
