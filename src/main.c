@@ -20,6 +20,7 @@ mat4_t world_mat;
 
 bool is_running = false;
 int previous_frame_time = 0;
+float delta_time = 0;
 
 void process_input();
 void setup();
@@ -58,8 +59,8 @@ void setup() {
     const float zfar = 100.0;
     perspective_mat = mat4_make_perspective(fov, aspect, znear, zfar);
 
-    load_obj_file("./assets/crab.obj");
-    load_png_texture("./assets/crab.png");
+    load_obj_file("./assets/f22.obj");
+    load_png_texture("./assets/f22.png");
 
     if(mesh_texture) render_mod_mask |= 1 << RENDER_MOD_TEXTURED;
     else render_mod_mask |= 1 << RENDER_MOD_SOLID;
@@ -87,6 +88,20 @@ void process_input() {
             render_mod_mask ^= 1 << RENDER_MOD_BACKFACE;
         } else if(evn.key.keysym.sym == SDLK_5) {
             render_mod_mask ^= 1 << RENDER_MOD_TEXTURED;
+        } else if(evn.key.keysym.sym == SDLK_UP) {
+            camera.position.y += 10.f * delta_time;
+        } else if(evn.key.keysym.sym == SDLK_DOWN) {
+            camera.position.y -= 10.f * delta_time;
+        } else if(evn.key.keysym.sym == SDLK_a) {
+            camera.yaw += 1.f * delta_time;
+        } else if(evn.key.keysym.sym == SDLK_d) {
+            camera.yaw -= 1.f * delta_time;
+        } else if(evn.key.keysym.sym == SDLK_w) {
+            camera.forward_velocity = vec3_mul(camera.direction, 10.0 * delta_time);
+            camera.position = vec3_add(camera.position, camera.forward_velocity);
+        } else if(evn.key.keysym.sym == SDLK_s) {
+            camera.forward_velocity = vec3_mul(camera.direction, 10.0 * delta_time);
+            camera.position = vec3_sub(camera.position, camera.forward_velocity);
         }
         break;
     }
@@ -97,23 +112,20 @@ void update() {
     if(wait_time > 0) {
         SDL_Delay(wait_time);
     }
+    delta_time = (SDL_GetTicks() - previous_frame_time) / 1000.f;
     previous_frame_time = SDL_GetTicks();
 
-    //mesh.rotation.x += 0.01;
-    //mesh.rotation.y += 0.01;
-    //mesh.rotation.z += 0.01;
-    //mesh.scale.x += 0.001;
-    //mesh.scale.y += 0.002;
-    //mesh.translation.x += 0.01;
+    //mesh.rotation.x += 0.01 * delta_time;
+    //mesh.rotation.y += 0.01 * delta_time;
+    //mesh.rotation.z += 0.01 * delta_time;
     mesh.translation.z = 5.0;
-
-    camera.position.x += 0.01;
-    camera.position.y += 0.01;
 
     num_triangles_to_render = 0;
 
-    vec3_t target = {0, 0, 4.0};
     vec3_t up = {0, 1, 0};
+    vec3_t forward = {0, 0, 1};
+    camera.direction = vec3_rotate_y(forward, camera.yaw);
+    vec3_t target = vec3_add(camera.position, camera.direction);
     view_mat = mat4_look_at(camera.position, target, up);
 
     mat4_t scale_mat = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
@@ -147,7 +159,6 @@ void update() {
             transformed_vertex = mat4_mul_vec4(view_mat, transformed_vertex);
 
             transformed_vertices[j] = transformed_vertex;
-
         }
 
         vec3_t a = vec3_from_vec4(transformed_vertices[0]);

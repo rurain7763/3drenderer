@@ -117,7 +117,7 @@ void vec3_normalize(vec3_t* v) {
     v->z /= len;
 }
 
-vec3_t vec3_roate_x(vec3_t v, float rot) {
+vec3_t vec3_rotate_x(vec3_t v, float rot) {
     vec3_t rotated = {
         .x = v.x,
         .y = v.y * cos(rot) - v.z * sin(rot),
@@ -126,7 +126,7 @@ vec3_t vec3_roate_x(vec3_t v, float rot) {
     return rotated;
 }
 
-vec3_t vec3_roate_y(vec3_t v, float rot) {
+vec3_t vec3_rotate_y(vec3_t v, float rot) {
     vec3_t rotated = {
         .x = v.x * cos(rot) - v.z * sin(rot),
         .y = v.y,
@@ -135,7 +135,7 @@ vec3_t vec3_roate_y(vec3_t v, float rot) {
     return rotated;
 }
 
-vec3_t vec3_roate_z(vec3_t v, float rot) {
+vec3_t vec3_rotate_z(vec3_t v, float rot) {
     vec3_t rotated = {
         .x = v.x * cos(rot) - v.y * sin(rot),
         .y = v.x * sin(rot) + v.y * cos(rot),

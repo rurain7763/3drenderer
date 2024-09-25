@@ -38,9 +38,9 @@ float vec3_dot(vec3_t a, vec3_t b);
 
 void vec3_normalize(vec3_t* v);
 
-vec3_t vec3_roate_x(vec3_t v, float rot);
-vec3_t vec3_roate_y(vec3_t v, float rot);
-vec3_t vec3_roate_z(vec3_t v, float rot);
+vec3_t vec3_rotate_x(vec3_t v, float rot);
+vec3_t vec3_rotate_y(vec3_t v, float rot);
+vec3_t vec3_rotate_z(vec3_t v, float rot);
 
 vec3_t vec3_from_vec4(vec4_t v);
 
