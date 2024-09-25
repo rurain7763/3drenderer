@@ -63,8 +63,8 @@ void setup() {
     perspective_mat = mat4_make_perspective(fov_y, aspect_y, z_near, z_far);
     init_frustum_planes(fov_x, fov_y, z_near, z_far);
 
-    load_obj_file("./assets/cube.obj");
-    //load_png_texture("./assets/cube.png");
+    load_obj_file("./assets/f117.obj");
+    load_png_texture("./assets/f117.png");
 
     if(mesh_texture) render_mod_mask |= 1 << RENDER_MOD_TEXTURED;
     else render_mod_mask |= 1 << RENDER_MOD_SOLID;
@@ -192,7 +192,10 @@ void update() {
         polygon_t polygon = create_polygon_from_triangle(
             vec3_from_vec4(transformed_vertices[0]),
             vec3_from_vec4(transformed_vertices[1]),
-            vec3_from_vec4(transformed_vertices[2])
+            vec3_from_vec4(transformed_vertices[2]),
+            mesh_face.a_uv,
+            mesh_face.b_uv,
+            mesh_face.c_uv
         );
         clip_polygon(&polygon);
         triangle_t triangles_after_clipping[MAX_NUM_POLY_TRIANGLES];
@@ -226,9 +229,9 @@ void update() {
                     { projected_points[2].x, projected_points[2].y, projected_points[2].z, projected_points[2].w  }
                 },
                 .texcoords = {
-                    { mesh_face.a_uv.u, mesh_face.a_uv.v },
-                    { mesh_face.b_uv.u, mesh_face.b_uv.v },
-                    { mesh_face.c_uv.u, mesh_face.c_uv.v }
+                    { triangle.texcoords[0].u, triangle.texcoords[0].v },
+                    { triangle.texcoords[1].u, triangle.texcoords[1].v },
+                    { triangle.texcoords[2].u, triangle.texcoords[2].v },
                 },
                 .color = triangle_color,
             };
