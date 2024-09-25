@@ -54,12 +54,14 @@ void setup() {
         window_height
     );
 
-    const float fov = M_PI / 3.0; // 60 degree
-    const float aspect = window_height / (float)window_width;
+    const float aspect_y = window_height / (float)window_width;
+    const float aspect_x = window_width / (float)window_height;
+    const float fov_y = M_PI / 3.0; // 60 degree
+    const float fov_x = 2 * atan(tan(fov_y / 2) * aspect_x); // 60 degree
     const float z_near = 0.1;
     const float z_far = 100.0;
-    perspective_mat = mat4_make_perspective(fov, aspect, z_near, z_far);
-    init_frustum_planes(fov, z_near, z_far);
+    perspective_mat = mat4_make_perspective(fov_y, aspect_y, z_near, z_far);
+    init_frustum_planes(fov_x, fov_y, z_near, z_far);
 
     load_obj_file("./assets/cube.obj");
     //load_png_texture("./assets/cube.png");
