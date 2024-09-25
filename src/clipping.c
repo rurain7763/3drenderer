@@ -94,3 +94,13 @@ void clip_polygon(polygon_t* polygon) {
     clip_polygon_against_plane(polygon, NEAR_FRUSTUM_PLANE);
     clip_polygon_against_plane(polygon, FAR_FRUSTUM_PLANE);
 }
+
+void triangles_from_polygon(polygon_t* polygon, triangle_t* triangles, int* num_triangles) {
+    int i;
+    for(i = 0; i < polygon->num_vertices - 2; i++) {
+        triangles[i].points[0] = vec4_from_vec3(polygon->vertices[0]);
+        triangles[i].points[1] = vec4_from_vec3(polygon->vertices[i + 1]);
+        triangles[i].points[2] = vec4_from_vec3(polygon->vertices[i + 2]);
+    }
+    *num_triangles = i;
+}

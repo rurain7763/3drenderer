@@ -89,7 +89,9 @@ void process_input() {
         } else if(evn.key.keysym.sym == SDLK_4) {
             render_mod_mask ^= 1 << RENDER_MOD_BACKFACE;
         } else if(evn.key.keysym.sym == SDLK_5) {
-            render_mod_mask ^= 1 << RENDER_MOD_TEXTURED;
+            if(mesh_texture) {
+                render_mod_mask ^= 1 << RENDER_MOD_TEXTURED;
+            }
         } else if(evn.key.keysym.sym == SDLK_UP) {
             camera.position.y += 10.f * delta_time;
         } else if(evn.key.keysym.sym == SDLK_DOWN) {
@@ -138,7 +140,6 @@ void update() {
 
     int len_faces = array_length(mesh.faces);
     for(int i = 0; i < len_faces; i++) {
-        if(i != 4) continue;
         face_t mesh_face = mesh.faces[i];
 
         vec3_t vertices[3];
@@ -191,42 +192,48 @@ void update() {
             vec3_from_vec4(transformed_vertices[1]),
             vec3_from_vec4(transformed_vertices[2])
         );
-
         clip_polygon(&polygon);
+        triangle_t triangles_after_clipping[MAX_NUM_POLY_TRIANGLES];
+        int num_triangles_after_clipping = 0;
+        triangles_from_polygon(&polygon, triangles_after_clipping, &num_triangles_after_clipping);
 
-        vec4_t projected_points[3];
-        for(int j = 0; j < 3; j++) {
-            projected_points[j] = mat4_mul_projection_vec4(perspective_mat, transformed_vertices[j]);
+        for(int i = 0; i < num_triangles_after_clipping; i++) {
+            triangle_t triangle = triangles_after_clipping[i];
 
-            projected_points[j].x *= window_width / 2.0;
-            projected_points[j].y *= window_height / 2.0;
-            projected_points[j].y *= -1.0;
+            vec4_t projected_points[3];
+            for(int j = 0; j < 3; j++) {
+                projected_points[j] = mat4_mul_projection_vec4(perspective_mat, triangle.points[j]);
 
-            projected_points[j].x += window_width / 2.0;
-            projected_points[j].y += window_height/ 2.0;
-        }
+                projected_points[j].x *= window_width / 2.0;
+                projected_points[j].y *= window_height / 2.0;
+                projected_points[j].y *= -1.0;
 
-        // calculate light intensity and apply
-        uint32_t triangle_color = mesh_face.color;
-        float light_factor = -vec3_dot(global_light.direction, normal);
-        triangle_color = apply_light_intensity(triangle_color, light_factor);
+                projected_points[j].x += window_width / 2.0;
+                projected_points[j].y += window_height/ 2.0;
+            }
 
-        triangle_t projected_triangle = {
-            .points = {
-                { projected_points[0].x, projected_points[0].y, projected_points[0].z, projected_points[0].w },
-                { projected_points[1].x, projected_points[1].y, projected_points[1].z, projected_points[1].w  },
-                { projected_points[2].x, projected_points[2].y, projected_points[2].z, projected_points[2].w  }
-            },
-            .texcoords = {
-                { mesh_face.a_uv.u, mesh_face.a_uv.v },
-                { mesh_face.b_uv.u, mesh_face.b_uv.v },
-                { mesh_face.c_uv.u, mesh_face.c_uv.v }
-            },
-            .color = triangle_color,
-        };
+            // calculate light intensity and apply
+            uint32_t triangle_color = mesh_face.color;
+            float light_factor = -vec3_dot(global_light.direction, normal);
+            triangle_color = apply_light_intensity(triangle_color, light_factor);
 
-        if(num_triangles_to_render < MAX_TRIANGLES_PER_MESH) {
-            triangles_to_render[num_triangles_to_render++] = projected_triangle;
+            triangle_t triangle_to_render = {
+                .points = {
+                    { projected_points[0].x, projected_points[0].y, projected_points[0].z, projected_points[0].w },
+                    { projected_points[1].x, projected_points[1].y, projected_points[1].z, projected_points[1].w  },
+                    { projected_points[2].x, projected_points[2].y, projected_points[2].z, projected_points[2].w  }
+                },
+                .texcoords = {
+                    { mesh_face.a_uv.u, mesh_face.a_uv.v },
+                    { mesh_face.b_uv.u, mesh_face.b_uv.v },
+                    { mesh_face.c_uv.u, mesh_face.c_uv.v }
+                },
+                .color = triangle_color,
+            };
+
+            if(num_triangles_to_render < MAX_TRIANGLES_PER_MESH) {
+                triangles_to_render[num_triangles_to_render++] = triangle_to_render;
+            }
         }
     }
 }
