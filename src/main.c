@@ -8,6 +8,7 @@
 #include "triangle.h"
 #include "upng.h"
 #include "camera.h"
+#include "clipping.h"
 
 #define MAX_TRIANGLES_PER_MESH 10000
 
@@ -55,9 +56,10 @@ void setup() {
 
     const float fov = M_PI / 3.0; // 60 degree
     const float aspect = window_height / (float)window_width;
-    const float znear = 0.1;
-    const float zfar = 100.0;
-    perspective_mat = mat4_make_perspective(fov, aspect, znear, zfar);
+    const float z_near = 0.1;
+    const float z_far = 100.0;
+    perspective_mat = mat4_make_perspective(fov, aspect, z_near, z_far);
+    init_frustum_planes(fov, z_near, z_far);
 
     load_obj_file("./assets/f22.obj");
     load_png_texture("./assets/f22.png");

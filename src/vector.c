@@ -57,6 +57,11 @@ vec2_t vec2_from_vec4(vec4_t v) {
 }
 
 // vec3 methods
+vec3_t vec3_new(float x, float y, float z) {
+    vec3_t ret = {x, y, z};
+    return ret;
+}
+
 float vec3_length(vec3_t v) {
     return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }
