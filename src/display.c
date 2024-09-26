@@ -1,13 +1,21 @@
 #include"display.h"
 #include<stdio.h>
 
-SDL_Window* window = NULL;
-SDL_Renderer* renderer = NULL;
-int window_width = 800, window_height = 600;
-uint32_t* color_buffer = NULL;
-float* z_buffer = NULL;
-SDL_Texture* color_buffer_texture = NULL;
-uint32_t render_mod_mask = 0;
+static SDL_Window* window = NULL;
+static SDL_Renderer* renderer = NULL;
+static int window_width = 800, window_height = 600;
+static uint32_t* color_buffer = NULL;
+static float* z_buffer = NULL;
+static SDL_Texture* color_buffer_texture = NULL;
+static uint32_t render_mod_mask = 0;
+
+int get_window_width() {
+    return window_width;
+}
+
+int get_window_height() {
+    return window_height;
+}
 
 bool init_window() {
     if(SDL_Init(SDL_INIT_EVERYTHING)) {
@@ -42,22 +50,32 @@ bool init_window() {
 
     SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
 
+    color_buffer = (uint32_t*)malloc(sizeof(uint32_t) * window_width * window_height);
+    z_buffer = (float*)malloc(sizeof(float) * window_width * window_height);
+
+    color_buffer_texture = SDL_CreateTexture(
+        renderer,
+        SDL_PIXELFORMAT_ARGB8888,
+        SDL_TEXTUREACCESS_STREAMING,
+        window_width,
+        window_height
+    );
+
+    set_render_mod(RENDER_MOD_SOLID, true);
+    set_render_mod(RENDER_MOD_BACKFACE, true);
+
     return true;
 }
 
 void clear_color_buffer(uint32_t color) {
-    for(int i = 0; i < window_height; i++) {
-        for(int j = 0; j < window_width; j++) {
-            color_buffer[window_width * i + j] = color;
-        }
+    for(int i = 0; i < window_height * window_width; i++) {
+        color_buffer[i] = color;
     }
 }
 
 void clear_z_buffer() {
-    for(int i = 0; i < window_height; i++) {
-        for(int j = 0; j < window_width; j++) {
-            z_buffer[window_width * i + j] = 1.0f;
-        }
+    for(int i = 0; i < window_height * window_width; i++) {
+        z_buffer[i] = 1.0f;
     }
 }
 
@@ -119,11 +137,40 @@ void render_color_buffer() {
         NULL,
         NULL
     );
+    SDL_RenderPresent(renderer);
 }
 
 void destroy_window() {
+    free(z_buffer);
+    free(color_buffer);
     SDL_DestroyTexture(color_buffer_texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+}
+
+void set_render_mod(int mod, bool state) {
+    if(state) {
+        render_mod_mask |= (1 << mod);
+    } else {
+        render_mod_mask &= ~(1 << mod);
+    }
+}
+
+void switch_render_mod(int mod) {
+    render_mod_mask ^= (1 << mod);
+}
+
+bool is_set_render_mod(int mod) {
+    return render_mod_mask & (1 << mod);
+}
+
+float get_zbuffer_at(int x, int y) {
+    if(x < 0 || x >= window_width || y < 0 || y >= window_height) return -1;
+    return z_buffer[window_width * y + x];
+}
+
+void update_zbuffer_at(int x, int y, float v) {
+    if(x < 0 || x >= window_width || y < 0 || y >= window_height) return;
+    z_buffer[window_width * y + x] = v;
 }

@@ -35,9 +35,9 @@ void draw_solid_pixel(
     float inv_w = (1 / a.w) * weights.x + (1 / b.w) * weights.y + (1 / c.w) * weights.z;
 
     inv_w = 1.0f - inv_w;
-    if(inv_w < z_buffer[window_width * y + x]) {
+    if(inv_w < get_zbuffer_at(x, y)) {
         draw_pixel(x, y, color);
-        z_buffer[window_width * y + x] = inv_w;
+        update_zbuffer_at(x, y, inv_w);
     }
 }
 
@@ -133,9 +133,9 @@ void draw_texel(
     int tex_y = abs((int)(texture_height * v)) % texture_height;
 
     inv_w = 1.0 - inv_w;
-    if(inv_w < z_buffer[window_width * y + x]) {
+    if(inv_w < get_zbuffer_at(x, y)) {
         draw_pixel(x, y, mesh_texture[texture_width * tex_y + tex_x]);
-        z_buffer[window_width * y + x] = inv_w;
+        update_zbuffer_at(x, y, inv_w);
     }
 }
 
