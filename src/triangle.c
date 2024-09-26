@@ -112,7 +112,8 @@ void draw_filled_triangle(
 void draw_texel(
     int x, int y,
     vec4_t a, vec4_t b, vec4_t c, 
-    tex2_t a_uv, tex2_t b_uv, tex2_t c_uv
+    tex2_t a_uv, tex2_t b_uv, tex2_t c_uv,
+    texture_t* texture
 ) {
     vec2_t p = {x, y};
     vec2_t _a = vec2_from_vec4(a);
@@ -129,20 +130,21 @@ void draw_texel(
     u /= inv_w;
     v /= inv_w;
 
-    //int tex_x = abs((int)(texture_width * u)) % texture_width;
-    //int tex_y = abs((int)(texture_height * v)) % texture_height;
+    int tex_x = abs((int)(texture->width * u)) % texture->width;
+    int tex_y = abs((int)(texture->height * v)) % texture->height;
 
-    //inv_w = 1.0 - inv_w;
-    //if(inv_w < get_zbuffer_at(x, y)) {
-    //    draw_pixel(x, y, mesh_texture[texture_width * tex_y + tex_x]);
-    //    update_zbuffer_at(x, y, inv_w);
-    //}
+    inv_w = 1.0 - inv_w;
+    if(inv_w < get_zbuffer_at(x, y)) {
+        draw_pixel(x, y, texture->buffer[texture->width * tex_y + tex_x]);
+        update_zbuffer_at(x, y, inv_w);
+    }
 }
 
 void draw_textured_triangle(
     int x0, int y0, float z0, float w0, float u0, float v0, 
     int x1, int y1, float z1, float w1, float u1, float v1,
-    int x2, int y2, float z2, float w2, float u2, float v2
+    int x2, int y2, float z2, float w2, float u2, float v2,
+    texture_t* texture
 ) {
     // y값이 큰 순서대로 정렬
     if(y0 > y1) {
@@ -198,7 +200,7 @@ void draw_textured_triangle(
             }
 
             for (int x = x_start; x < x_end; x++) {
-                draw_texel(x, y, a, b, c, a_uv, b_uv, c_uv);
+                draw_texel(x, y, a, b, c, a_uv, b_uv, c_uv, texture);
             }
         }
     }
@@ -215,7 +217,7 @@ void draw_textured_triangle(
             }
 
             for (int x = x_start; x < x_end; x++) {
-                draw_texel(x, y, a, b, c, a_uv, b_uv, c_uv);
+                draw_texel(x, y, a, b, c, a_uv, b_uv, c_uv, texture);
             }
         }
     }

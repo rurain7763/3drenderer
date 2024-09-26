@@ -27,7 +27,6 @@ void process_input();
 void setup();
 void update();
 void render();
-void destroy_resources();
 
 int main() {
     is_running = init_window();
@@ -37,7 +36,7 @@ int main() {
         update();
         render();
     }
-    destroy_resources();
+    free_meshs();
     destroy_window();
     return 0;
 }
@@ -58,6 +57,8 @@ void setup() {
 
     load_mesh("./assets/f117.obj", "./assets/f117.png", vec3_new(1, 1, 1), vec3_new(0, 0, 0), vec3_new(0, 1, 5));
     load_mesh("./assets/efa.obj", "./assets/efa.png", vec3_new(1, 1, 1), vec3_new(0, 0, 0), vec3_new(0, -1, 5));
+
+    set_render_mod(RENDER_MOD_TEXTURED, true);
 }
 
 void process_input() {
@@ -240,6 +241,7 @@ void update() {
                         { triangle.texcoords[2].u, triangle.texcoords[2].v },
                     },
                     .color = triangle_color,
+                    .texture = &mesh->texture
                 };
 
                 if(num_triangles_to_render < MAX_TRIANGLES_PER_MESH) {
@@ -259,12 +261,13 @@ void render() {
     for(int i = 0; i < num_triangles_to_render; i++) {
         triangle_t triangle = triangles_to_render[i];
 
-        if(is_set_render_mod(RENDER_MOD_TEXTURED)) {
-            //draw_textured_triangle(
-            //    triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.texcoords[0].u, triangle.texcoords[0].v,
-            //    triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.texcoords[1].u, triangle.texcoords[1].v,
-            //    triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.texcoords[2].u, triangle.texcoords[2].v
-            //);
+        if(is_set_render_mod(RENDER_MOD_TEXTURED) && triangle.texture) {
+            draw_textured_triangle(
+                triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w, triangle.texcoords[0].u, triangle.texcoords[0].v,
+                triangle.points[1].x, triangle.points[1].y, triangle.points[1].z, triangle.points[1].w, triangle.texcoords[1].u, triangle.texcoords[1].v,
+                triangle.points[2].x, triangle.points[2].y, triangle.points[2].z, triangle.points[2].w, triangle.texcoords[2].u, triangle.texcoords[2].v,
+                triangle.texture
+            );
         } else if(is_set_render_mod(RENDER_MOD_SOLID)) {
             draw_filled_triangle(
                 triangle.points[0].x, triangle.points[0].y, triangle.points[0].z, triangle.points[0].w,
@@ -302,7 +305,4 @@ void render() {
     render_color_buffer();
 }
 
-void destroy_resources() {
-    free_meshs();
-}
 
