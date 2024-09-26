@@ -14,6 +14,8 @@ typedef struct {
 } vec4_t;
 
 // vec2 methods
+vec2_t vec2_new(float x, float y);
+
 float vec2_length(vec2_t v);
 vec2_t vec2_add(vec2_t a, vec2_t b);
 vec2_t vec2_sub(vec2_t a, vec2_t b);

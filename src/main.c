@@ -43,6 +43,7 @@ int main() {
 }
 
 void setup() {
+    // projection matrix 구하기
     const float aspect_y = get_window_height() / (float)get_window_width();
     const float aspect_x = get_window_width() / (float)get_window_height();
     const float fov_y = M_PI / 3.0; // 60 degree
@@ -53,6 +54,7 @@ void setup() {
     init_frustum_planes(fov_x, fov_y, z_near, z_far);
 
     init_global_light(vec3_new(0, 0, 1));
+    init_camera(vec3_new(0, 0, 0));
 
     load_obj_file("./assets/f117.obj");
     load_png_texture("./assets/f117.png");
@@ -84,25 +86,41 @@ void process_input() {
                     switch_render_mod(RENDER_MOD_TEXTURED);
                 }
             } else if(evn.key.keysym.sym == SDLK_DOWN) {
-                camera.pitch += 5.f * delta_time;
+                vec2_t new_rot = get_camera_rot();
+                new_rot.x += 5.f * delta_time;
+                update_camera_rot(new_rot);
             } else if(evn.key.keysym.sym == SDLK_UP) {
-                camera.pitch -= 5.f * delta_time;
+                vec2_t new_rot = get_camera_rot();
+                new_rot.x -= 5.f * delta_time;
+                update_camera_rot(new_rot);
             } else if(evn.key.keysym.sym == SDLK_LEFT) {
-                camera.yaw += 5.f * delta_time;
+                vec2_t new_rot = get_camera_rot();
+                new_rot.y += 5.f * delta_time;
+                update_camera_rot(new_rot);
             } else if(evn.key.keysym.sym == SDLK_RIGHT) {
-                camera.yaw -= 5.f * delta_time;
+                vec2_t new_rot = get_camera_rot();
+                new_rot.y -= 5.f * delta_time;
+                update_camera_rot(new_rot);
             } else if(evn.key.keysym.sym == SDLK_a) {
-                vec3_t right = vec3_cross(camera.direction, vec3_new(0, 1, 0));
-                camera.position = vec3_add(camera.position, vec3_mul(right, 50 * delta_time));
+                vec3_t right = vec3_cross(get_camera_dir(), vec3_new(0, 1, 0));
+                vec3_t new_pos = get_camera_pos();
+                new_pos = vec3_add(new_pos, vec3_mul(right, 50 * delta_time));
+                update_camera_pos(new_pos);
             } else if(evn.key.keysym.sym == SDLK_d) {
-                vec3_t right = vec3_cross(camera.direction, vec3_new(0, 1, 0));
-                camera.position = vec3_sub(camera.position, vec3_mul(right, 50 * delta_time));
+                vec3_t right = vec3_cross(get_camera_dir(), vec3_new(0, 1, 0));
+                vec3_t new_pos = get_camera_pos();
+                new_pos = vec3_sub(new_pos, vec3_mul(right, 50 * delta_time));
+                update_camera_pos(new_pos);
             } else if(evn.key.keysym.sym == SDLK_w) {
-                vec3_t velocity = vec3_mul(camera.direction, 50.0 * delta_time);
-                camera.position = vec3_add(camera.position, velocity);
+                vec3_t velocity = vec3_mul(get_camera_dir(), 50.0 * delta_time);
+                vec3_t new_pos = get_camera_pos();
+                new_pos = vec3_add(new_pos, velocity);
+                update_camera_pos(new_pos);
             } else if(evn.key.keysym.sym == SDLK_s) {
-                vec3_t velocity = vec3_mul(camera.direction, 50.0 * delta_time);
-                camera.position = vec3_sub(camera.position, velocity);
+                vec3_t velocity = vec3_mul(get_camera_dir(), 50.0 * delta_time);
+                vec3_t new_pos = get_camera_pos();
+                new_pos = vec3_sub(new_pos, velocity);
+                update_camera_pos(new_pos);
             }
             break;
         }
@@ -124,12 +142,10 @@ void update() {
 
     num_triangles_to_render = 0;
 
+    // view matrix 구하기
     vec3_t up = {0, 1, 0};
-    camera.direction = vec3_new(0, 0, 1);
-    camera.direction = vec3_rotate_x(camera.direction, camera.pitch);
-    camera.direction = vec3_rotate_y(camera.direction, camera.yaw);
-    vec3_t target = vec3_add(camera.position, camera.direction);
-    view_mat = mat4_look_at(camera.position, target, up);
+    vec3_t target = vec3_add(get_camera_pos(), get_camera_dir());
+    view_mat = mat4_look_at(get_camera_pos(), target, up);
 
     mat4_t scale_mat = mat4_make_scale(mesh.scale.x, mesh.scale.y, mesh.scale.z);
     mat4_t rotx_mat = mat4_make_rotation_x(mesh.rotation.x);

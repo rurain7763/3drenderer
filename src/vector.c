@@ -2,6 +2,14 @@
 #include <math.h>
 
 // vec2 methods
+vec2_t vec2_new(float x, float y) {
+    vec2_t ret = {
+        .x = x,
+        .y = y    
+    };
+    return ret;
+}
+
 float vec2_length(vec2_t v) {
     return sqrt(v.x * v.x + v.y * v.y);
 }
