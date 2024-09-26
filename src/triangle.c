@@ -2,6 +2,22 @@
 #include "display.h"
 #include "swap.h"
 
+vec3_t get_triangle_normal(vec4_t* vertices) {
+    vec3_t a = vec3_from_vec4(vertices[0]);
+    vec3_t b = vec3_from_vec4(vertices[1]);
+    vec3_t c = vec3_from_vec4(vertices[2]);
+
+    vec3_t ab = vec3_sub(b, a);
+    vec3_t ac = vec3_sub(c, a);
+    vec3_normalize(&ab);
+    vec3_normalize(&ac);
+
+    vec3_t normal = vec3_cross(ab, ac);
+    vec3_normalize(&normal);
+
+    return normal;
+}
+
 vec3_t barycentric_weights(vec2_t a, vec2_t b, vec2_t c, vec2_t p) {
     vec2_t ac = vec2_sub(c, a);
     vec2_t ab = vec2_sub(b, a);
