@@ -3,7 +3,7 @@
 
 static SDL_Window* window = NULL;
 static SDL_Renderer* renderer = NULL;
-static int window_width = 800, window_height = 600;
+static int window_width = 320, window_height = 200;
 static uint32_t* color_buffer = NULL;
 static float* z_buffer = NULL;
 static SDL_Texture* color_buffer_texture = NULL;
@@ -25,15 +25,18 @@ bool init_window() {
 
     SDL_DisplayMode dis_mod;
     SDL_GetCurrentDisplayMode(0, &dis_mod);
-    window_width = dis_mod.w;
-    window_height = dis_mod.h;
+    int full_screen_width = dis_mod.w;
+    int full_screen_height = dis_mod.h;
+
+    window_width = full_screen_width / 3;
+    window_height = full_screen_height / 3;
 
     window = SDL_CreateWindow(
         NULL, 
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        window_width,
-        window_height,
+        full_screen_width,
+        full_screen_height,
         SDL_WINDOW_BORDERLESS    
     );
 
