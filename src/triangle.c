@@ -129,14 +129,14 @@ void draw_texel(
     u /= inv_w;
     v /= inv_w;
 
-    int tex_x = abs((int)(texture_width * u)) % texture_width;
-    int tex_y = abs((int)(texture_height * v)) % texture_height;
+    //int tex_x = abs((int)(texture_width * u)) % texture_width;
+    //int tex_y = abs((int)(texture_height * v)) % texture_height;
 
-    inv_w = 1.0 - inv_w;
-    if(inv_w < get_zbuffer_at(x, y)) {
-        draw_pixel(x, y, mesh_texture[texture_width * tex_y + tex_x]);
-        update_zbuffer_at(x, y, inv_w);
-    }
+    //inv_w = 1.0 - inv_w;
+    //if(inv_w < get_zbuffer_at(x, y)) {
+    //    draw_pixel(x, y, mesh_texture[texture_width * tex_y + tex_x]);
+    //    update_zbuffer_at(x, y, inv_w);
+    //}
 }
 
 void draw_textured_triangle(

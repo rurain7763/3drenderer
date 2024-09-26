@@ -3,24 +3,24 @@
 
 #include "vector.h"
 #include "triangle.h"
+#include "texture.h"
 
 typedef struct {
     vec3_t* vertices; // dynamic array of vertices
     face_t* faces;    // dynamic array of faces
+    texture_t texture;
     vec3_t scale;
     vec3_t rotation;
     vec3_t translation;
 } mesh_t;
 
-extern mesh_t mesh;
+void load_mesh(const char* obj_filename, const char* png_filename, vec3_t scale, vec3_t rotation, vec3_t translation);
+int load_mesh_obj_data(const char* filename, mesh_t* mesh);
+int load_mesh_png_texture(const char* fileName, texture_t* texture);
 
-#define N_CUBE_VERTICES 8
-#define N_CUBE_FACES (6 * 2) // 6 cube faces, 2 triangles per face
+int get_num_meshs();
+mesh_t* get_mesh_at(int idx);
 
-extern vec3_t cube_vertices[N_CUBE_VERTICES];
-extern face_t cube_faces[N_CUBE_FACES];
-
-void load_cube_mesh_data();
-void load_obj_file(const char* filename);
+void free_meshs();
 
 #endif

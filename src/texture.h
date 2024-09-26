@@ -7,12 +7,9 @@ typedef struct {
     float u, v;
 } tex2_t;
 
-extern uint32_t* mesh_texture;
-extern int texture_width;
-extern int texture_height;
-
-extern const uint8_t REDBRICK_TEXTURE[];
-
-void load_png_texture(const char* fileName);
+typedef struct {
+    uint32_t* buffer;
+    int width, height;
+} texture_t;
 
 #endif
