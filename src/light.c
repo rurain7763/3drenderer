@@ -1,8 +1,14 @@
 #include "light.h"
 
-light_t global_light = {
-    .direction = {0, 0, 1}
-};
+static light_t global_light;
+
+void init_global_light(vec3_t direction) {
+    global_light.direction = direction;
+}
+
+vec3_t get_global_light_dir() {
+    return global_light.direction;
+}
 
 uint32_t apply_light_intensity(uint32_t origin, float factor) {
     if(factor < 0) factor = 0;

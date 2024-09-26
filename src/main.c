@@ -52,6 +52,8 @@ void setup() {
     perspective_mat = mat4_make_perspective(fov_y, aspect_y, z_near, z_far);
     init_frustum_planes(fov_x, fov_y, z_near, z_far);
 
+    init_global_light(vec3_new(0, 0, 1));
+
     load_obj_file("./assets/f117.obj");
     load_png_texture("./assets/f117.png");
     if(mesh_texture) {
@@ -81,20 +83,26 @@ void process_input() {
                 if(mesh_texture) {
                     switch_render_mod(RENDER_MOD_TEXTURED);
                 }
-            } else if(evn.key.keysym.sym == SDLK_UP) {
-                camera.position.y += 10.f * delta_time;
             } else if(evn.key.keysym.sym == SDLK_DOWN) {
-                camera.position.y -= 10.f * delta_time;
+                camera.pitch += 5.f * delta_time;
+            } else if(evn.key.keysym.sym == SDLK_UP) {
+                camera.pitch -= 5.f * delta_time;
+            } else if(evn.key.keysym.sym == SDLK_LEFT) {
+                camera.yaw += 5.f * delta_time;
+            } else if(evn.key.keysym.sym == SDLK_RIGHT) {
+                camera.yaw -= 5.f * delta_time;
             } else if(evn.key.keysym.sym == SDLK_a) {
-                camera.yaw += 1.f * delta_time;
+                vec3_t right = vec3_cross(camera.direction, vec3_new(0, 1, 0));
+                camera.position = vec3_add(camera.position, vec3_mul(right, 50 * delta_time));
             } else if(evn.key.keysym.sym == SDLK_d) {
-                camera.yaw -= 1.f * delta_time;
+                vec3_t right = vec3_cross(camera.direction, vec3_new(0, 1, 0));
+                camera.position = vec3_sub(camera.position, vec3_mul(right, 50 * delta_time));
             } else if(evn.key.keysym.sym == SDLK_w) {
-                camera.forward_velocity = vec3_mul(camera.direction, 10.0 * delta_time);
-                camera.position = vec3_add(camera.position, camera.forward_velocity);
+                vec3_t velocity = vec3_mul(camera.direction, 50.0 * delta_time);
+                camera.position = vec3_add(camera.position, velocity);
             } else if(evn.key.keysym.sym == SDLK_s) {
-                camera.forward_velocity = vec3_mul(camera.direction, 10.0 * delta_time);
-                camera.position = vec3_sub(camera.position, camera.forward_velocity);
+                vec3_t velocity = vec3_mul(camera.direction, 50.0 * delta_time);
+                camera.position = vec3_sub(camera.position, velocity);
             }
             break;
         }
@@ -109,16 +117,17 @@ void update() {
     delta_time = (SDL_GetTicks() - previous_frame_time) / 1000.f;
     previous_frame_time = SDL_GetTicks();
 
-    //mesh.rotation.x += 0.01 * delta_time;
-    //mesh.rotation.y += 0.01 * delta_time;
-    //mesh.rotation.z += 0.01 * delta_time;
+    //mesh.rotation.x += 1 * delta_time;
+    //mesh.rotation.y += 1 * delta_time;
+    //mesh.rotation.z += 1 * delta_time;
     mesh.translation.z = 5.0;
 
     num_triangles_to_render = 0;
 
     vec3_t up = {0, 1, 0};
-    vec3_t forward = {0, 0, 1};
-    camera.direction = vec3_rotate_y(forward, camera.yaw);
+    camera.direction = vec3_new(0, 0, 1);
+    camera.direction = vec3_rotate_x(camera.direction, camera.pitch);
+    camera.direction = vec3_rotate_y(camera.direction, camera.yaw);
     vec3_t target = vec3_add(camera.position, camera.direction);
     view_mat = mat4_look_at(camera.position, target, up);
 
@@ -207,7 +216,7 @@ void update() {
 
             // calculate light intensity and apply
             uint32_t triangle_color = mesh_face.color;
-            float light_factor = -vec3_dot(global_light.direction, normal);
+            float light_factor = -vec3_dot(get_global_light_dir(), normal);
             triangle_color = apply_light_intensity(triangle_color, light_factor);
 
             triangle_t triangle_to_render = {

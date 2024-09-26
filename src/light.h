@@ -8,7 +8,8 @@ typedef struct {
     vec3_t direction;
 } light_t;
 
-extern light_t global_light;
+void init_global_light(vec3_t direction);
+vec3_t get_global_light_dir();
 
 uint32_t apply_light_intensity(uint32_t origin, float factor);
 
