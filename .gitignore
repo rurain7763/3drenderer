@@ -1,1 +1,13 @@
 *.exe
+
+.vs/
+bin/
+bin_obj/
+
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+premake/
+premake5.lua

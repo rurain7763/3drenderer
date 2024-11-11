@@ -9,6 +9,8 @@
 #include "upng.h"
 #include "camera.h"
 #include "clipping.h"
+#include "input.h"
+#include <stdio.h>
 
 #define MAX_TRIANGLES_PER_MESH 10000
 
@@ -23,23 +25,30 @@ bool is_running = false;
 int previous_frame_time = 0;
 float delta_time = 0;
 
+const int mesh_count = 6;
+const char* mesh_names[] = {
+    "cube", "efa", "f22", "f117", "crab", "drone"
+};
+int current_present_mesh = 0;
+
 void process_input();
+void update_camera();
+void update_next_mesh();
 void setup();
 void update();
 void process_graphics_pipeline(mesh_t* mesh);
 void render();
 
-int main() {
+void main() {
     is_running = init_window();
     setup();
     while(is_running) {
+        update_input();
         process_input();
         update();
         render();
     }
     free_meshs();
-    destroy_window();
-    return 0;
 }
 
 void setup() {
@@ -56,8 +65,7 @@ void setup() {
     init_global_light(vec3_new(0, 0, 1));
     init_camera(vec3_new(0, 0, 0));
 
-    load_mesh("./assets/f117.obj", "./assets/f117.png", vec3_new(1, 1, 1), vec3_new(0, 0, 0), vec3_new(0, 1, 5));
-    load_mesh("./assets/efa.obj", "./assets/efa.png", vec3_new(1, 1, 1), vec3_new(0, 0, 0), vec3_new(0, -1, 5));
+    load_mesh("./assets/cube.obj", "./assets/cube.png", vec3_new(1, 1, 1), vec3_new(0, 0, 0), vec3_new(0, 0, 5));
 
     set_render_mod(RENDER_MOD_TEXTURED, true);
 }
@@ -79,48 +87,83 @@ void process_input() {
             } else if(evn.key.keysym.sym == SDLK_3) {
                 switch_render_mod(RENDER_MOD_SOLID);
             } else if(evn.key.keysym.sym == SDLK_4) {
-                switch_render_mod(RENDER_MOD_BACKFACE);
-            } else if(evn.key.keysym.sym == SDLK_5) {
                 switch_render_mod(RENDER_MOD_TEXTURED);
-            } else if(evn.key.keysym.sym == SDLK_DOWN) {
-                vec2_t new_rot = get_camera_rot();
-                new_rot.x += 5.f * delta_time;
-                update_camera_rot(new_rot);
-            } else if(evn.key.keysym.sym == SDLK_UP) {
-                vec2_t new_rot = get_camera_rot();
-                new_rot.x -= 5.f * delta_time;
-                update_camera_rot(new_rot);
-            } else if(evn.key.keysym.sym == SDLK_LEFT) {
-                vec2_t new_rot = get_camera_rot();
-                new_rot.y += 5.f * delta_time;
-                update_camera_rot(new_rot);
-            } else if(evn.key.keysym.sym == SDLK_RIGHT) {
-                vec2_t new_rot = get_camera_rot();
-                new_rot.y -= 5.f * delta_time;
-                update_camera_rot(new_rot);
-            } else if(evn.key.keysym.sym == SDLK_a) {
-                vec3_t right = vec3_cross(get_camera_dir(), vec3_new(0, 1, 0));
-                vec3_t new_pos = get_camera_pos();
-                new_pos = vec3_add(new_pos, vec3_mul(right, 50 * delta_time));
-                update_camera_pos(new_pos);
-            } else if(evn.key.keysym.sym == SDLK_d) {
-                vec3_t right = vec3_cross(get_camera_dir(), vec3_new(0, 1, 0));
-                vec3_t new_pos = get_camera_pos();
-                new_pos = vec3_sub(new_pos, vec3_mul(right, 50 * delta_time));
-                update_camera_pos(new_pos);
-            } else if(evn.key.keysym.sym == SDLK_w) {
-                vec3_t velocity = vec3_mul(get_camera_dir(), 50.0 * delta_time);
-                vec3_t new_pos = get_camera_pos();
-                new_pos = vec3_add(new_pos, velocity);
-                update_camera_pos(new_pos);
-            } else if(evn.key.keysym.sym == SDLK_s) {
-                vec3_t velocity = vec3_mul(get_camera_dir(), 50.0 * delta_time);
-                vec3_t new_pos = get_camera_pos();
-                new_pos = vec3_sub(new_pos, velocity);
-                update_camera_pos(new_pos);
+            } else if (evn.key.keysym.sym == SDLK_5) {
+                switch_render_mod(RENDER_MOD_BACKFACE);
             }
+            on_key_down(evn.key.keysym.sym);         
             break;
+        case SDL_KEYUP:
+			on_key_up(evn.key.keysym.sym);
+			break;
         }
+    }
+}
+
+void update_camera() {
+    const float camera_speed = 5.f;
+    const float camera_rotation_speed = 1.f;
+
+    if (is_key_pressed(SDLK_DOWN)) {
+        vec2_t new_rot = get_camera_rot();
+        new_rot.x += camera_rotation_speed * delta_time;
+        update_camera_rot(new_rot);
+    }
+    else if (is_key_pressed(SDLK_UP)) {
+        vec2_t new_rot = get_camera_rot();
+        new_rot.x -= camera_rotation_speed * delta_time;
+        update_camera_rot(new_rot);
+    }
+
+    if (is_key_pressed(SDLK_LEFT)) {
+        vec2_t new_rot = get_camera_rot();
+        new_rot.y += camera_rotation_speed * delta_time;
+        update_camera_rot(new_rot);
+    }
+    else if (is_key_pressed(SDLK_RIGHT)) {
+        vec2_t new_rot = get_camera_rot();
+        new_rot.y -= camera_rotation_speed * delta_time;
+        update_camera_rot(new_rot);
+    }
+
+    if (is_key_pressed(SDLK_a)) {
+        vec3_t right = vec3_cross(get_camera_dir(), vec3_new(0, 1, 0));
+        vec3_t new_pos = get_camera_pos();
+        new_pos = vec3_add(new_pos, vec3_mul(right, camera_speed * delta_time));
+        update_camera_pos(new_pos);
+    }
+    else if (is_key_pressed(SDLK_d)) {
+        vec3_t right = vec3_cross(get_camera_dir(), vec3_new(0, 1, 0));
+        vec3_t new_pos = get_camera_pos();
+        new_pos = vec3_sub(new_pos, vec3_mul(right, camera_speed * delta_time));
+        update_camera_pos(new_pos);
+    }
+
+    if (is_key_pressed(SDLK_w)) {
+        vec3_t velocity = vec3_mul(get_camera_dir(), camera_speed * delta_time);
+        vec3_t new_pos = get_camera_pos();
+        new_pos = vec3_add(new_pos, velocity);
+        update_camera_pos(new_pos);
+    }
+    else if (is_key_pressed(SDLK_s)) {
+        vec3_t velocity = vec3_mul(get_camera_dir(), camera_speed * delta_time);
+        vec3_t new_pos = get_camera_pos();
+        new_pos = vec3_sub(new_pos, velocity);
+        update_camera_pos(new_pos);
+    }
+}
+
+void update_next_mesh() {
+    if (is_key_down(SDLK_n)) {
+        free_meshs();
+        current_present_mesh = (current_present_mesh + 1) % mesh_count;
+        char* file_name[252];
+        sprintf(file_name, "./assets/%s.obj", mesh_names[current_present_mesh]);
+
+        char* texture_file_name[252];
+        sprintf(texture_file_name, "./assets/%s.png", mesh_names[current_present_mesh]);
+
+        load_mesh(file_name, texture_file_name, vec3_new(1, 1, 1), vec3_new(0, 0, 0), vec3_new(0, 0, 5));
     }
 }
 
@@ -143,9 +186,13 @@ void update() {
         mesh_t* mesh = get_mesh_at(i);
 
         // TODO: 메쉬 값 수정 (이동, 회전, 크기...)
+        mesh->rotation.y += 0.5f * delta_time;
 
         process_graphics_pipeline(mesh);
     }
+
+    update_next_mesh();
+    update_camera();
 }
 
 void process_graphics_pipeline(mesh_t* mesh) {
@@ -288,12 +335,13 @@ void render() {
         }
         
         if(is_set_render_mod(RENDER_MOD_VERTEX)) {
+            const float hRtSize = 1.f;
             for(int j = 0; j < 3; j++) {
                 draw_fill_rect(
-                    triangle.points[j].x - 3, 
-                    triangle.points[j].y - 3, 
-                    6,
-                    6,
+                    triangle.points[j].x - hRtSize,
+                    triangle.points[j].y - hRtSize,
+                    hRtSize * 2.f,
+                    hRtSize * 2.f,
                     0xFFFFFF00
                 );
             }

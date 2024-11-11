@@ -15,6 +15,8 @@ void load_mesh(const char* obj_filename, const char* png_filename, vec3_t scale,
     if(num_meshs >= MAX_NUM_MESHS) return;
 
     mesh_t* mesh = &meshs[num_meshs];
+    mesh->faces = NULL;
+    mesh->vertices = NULL;
 
     if(load_mesh_obj_data(obj_filename, mesh)) return;
     if(load_mesh_png_texture(png_filename, &mesh->texture)) return;
