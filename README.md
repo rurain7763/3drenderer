@@ -16,3 +16,6 @@
 - 3D object wireframe, flat shader, 텍스쳐링 렌더링
 - 3D 공간 이동 카메라
 ## 구동 영상
+[![영상](https://img.youtube.com/vi/trUXjKT0kDM/0.jpg)](https://www.youtube.com/watch?v=trUXjKT0kDM)
+## 내용 정리
+[노트](https://github.com/rurain7763/obsidian_note/blob/main/3drenderer.md)
